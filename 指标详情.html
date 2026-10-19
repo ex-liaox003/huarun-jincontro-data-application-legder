@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>指标详情 - 通用报送管理系统</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+  background: #f5f6f8;
+  min-height: 100vh;
+  color: #2c3e50;
+  font-size: 13px;
+}
+
+/* ============ HEADER ============ */
+.header {
+  position: relative;
+  background: #ffffff;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px 0 24px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+.watermark {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  overflow: hidden; pointer-events: none; z-index: 1; opacity: 0.55;
+}
+.watermark-row {
+  display: flex; gap: 90px; white-space: nowrap;
+  transform: rotate(-18deg); transform-origin: left top;
+  margin: -20px 0; font-size: 12px;
+  color: rgba(70,70,70,0.14); letter-spacing: 1px; font-weight: bold;
+}
+.watermark-row span { flex-shrink: 0; }
+.header-left, .header-nav, .header-right { position: relative; z-index: 2; }
+.header-left { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
+.logo-block { display: flex; align-items: center; gap: 10px; }
+.logo-img { height: 56px; width: auto; display: block; object-fit: contain; }
+.divider {
+  width: 1px; height: 32px;
+  background: linear-gradient(180deg, transparent, #d5d9de 30%, #d5d9de 70%, transparent);
+}
+.system-title { font-size: 20px; font-weight: bold; color: #2c3e50; letter-spacing: 2px; }
+.header-nav {
+  display: flex; align-items: center; gap: 4px;
+  flex: 1; justify-content: center; margin: 0 20px;
+}
+.nav-item {
+  padding: 8px 22px; height: 40px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 15px; color: #4a5568;
+  cursor: pointer; border-radius: 4px;
+  transition: all 0.2s; font-weight: 500;
+  text-decoration: none;
+}
+.nav-item:hover { color: #f5a623; }
+.nav-item.active {
+  background: linear-gradient(180deg, #fff3e0 0%, #ffe4c1 100%);
+  color: #f5a623; font-weight: bold;
+}
+.nav-item .arrow { font-size: 10px; color: #8a94a3; margin-left: 2px; }
+.nav-item:hover .arrow { color: #f5a623; }
+.header-right {
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0; padding-left: 20px;
+}
+.user-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1.5px solid #4a5568;
+  display: flex; align-items: center; justify-content: center;
+}
+.user-icon svg { width: 18px; height: 18px; }
+.user-name { font-size: 15px; color: #2c3e50; font-weight: 500; }
+
+/* ============ PAGE MAIN ============ */
+.page-container { padding: 12px 16px 24px; }
+
+/* Breadcrumb */
+.breadcrumb {
+  background: #fff;
+  padding: 12px 20px;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #6b7684;
+}
+.breadcrumb a {
+  color: #6b7684;
+  text-decoration: none;
+  cursor: pointer;
+}
+.breadcrumb a:hover { color: #f5a623; }
+.breadcrumb span:not(.sep) { color: #6b7684; }
+.breadcrumb .sep { margin: 0 6px; color: #b8c1cc; }
+.breadcrumb .current { color: #2c3e50; font-weight: 500; }
+
+/* Title Card */
+.title-card {
+  background: #fff;
+  border-radius: 6px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+.title-main { flex: 1; min-width: 0; }
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.indicator-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: #2c3e50;
+  letter-spacing: 1px;
+}
+.indicator-code {
+  font-size: 14px;
+  color: #8a94a3;
+  font-weight: normal;
+  background: #f5f6f8;
+  padding: 2px 10px;
+  border-radius: 3px;
+  font-family: "SF Mono", Consolas, monospace;
+}
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  padding: 2px 10px;
+  border-radius: 3px;
+}
+.status::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.status-unpub { color: #f5a623; background: #fff8ec; }
+.status-unpub::before { background: #f5a623; }
+.status-pub { color: #52c41a; background: #f0fbea; }
+.status-pub::before { background: #52c41a; }
+.status-off { color: #8a94a3; background: #f5f6f8; }
+.status-off::before { background: #b8c1cc; }
+
+.sec-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.sec-l1 { background: #7dd8d8; color: #fff; }
+.sec-l2 { background: #8ee600; color: #fff; }
+.sec-l3 { background: #f5a623; color: #fff; }
+.sec-l4 { background: #f07070; color: #fff; }
+
+.version-tag {
+  font-size: 12px;
+  color: #f5a623;
+  background: #fff3e0;
+  padding: 2px 10px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.title-meta {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #6b7684;
+}
+.title-meta .meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.title-meta .meta-label { color: #8a94a3; }
+.title-meta .meta-value { color: #4a5568; font-weight: 500; }
+
+/* Detail Tabs */
+.detail-tabs {
+  display: flex;
+  gap: 0;
+  background: #fff;
+  border-radius: 6px 6px 0 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-bottom: 0;
+  border-bottom: 1px solid #eaedf1;
+}
+.detail-tab {
+  padding: 12px 28px;
+  font-size: 14px;
+  color: #6b7684;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  font-weight: 500;
+  position: relative;
+  margin-bottom: -1px;
+}
+.detail-tab:hover {
+  color: #f5a623;
+}
+.detail-tab.active {
+  color: #f5a623;
+  border-bottom-color: #f5a623;
+  font-weight: bold;
+}
+
+/* Tab Content */
+.tab-content { }
+
+/* Version Panel */
+.version-panel {
+  background: #fff;
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.panel-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #eaedf1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-title {
+  font-size: 15px;
+  font-weight: bold;
+  color: #2c3e50;
+  position: relative;
+  padding-left: 12px;
+}
+.panel-title::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 4px; height: 16px;
+  background: #f5a623;
+  border-radius: 2px;
+}
+.panel-count { font-size: 13px; color: #8a94a3; }
+
+.version-table { width: 100%; border-collapse: collapse; }
+.version-table thead th {
+  background: #f9fbfd;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7684;
+  border-bottom: 1px solid #eaedf1;
+}
+.version-table tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f0f2f5;
+  font-size: 13px;
+  color: #2c3e50;
+}
+.version-table tbody tr:hover { background: #fafcff; }
+.version-table tbody tr:last-child td { border-bottom: none; }
+
+.ver-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  background: #fff3e0;
+  color: #f5a623;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.ver-badge.current { background: #f5a623; color: #fff; }
+
+.action-type { display: inline-flex; align-items: center; gap: 6px; }
+.action-dot { width: 8px; height: 8px; border-radius: 50%; }
+.action-dot.create { background: #4a90e2; }
+.action-dot.update { background: #f5a623; }
+.action-dot.publish { background: #52c41a; }
+.action-dot.offline { background: #8a94a3; }
+
+.view-btn {
+  padding: 4px 14px;
+  border: 1px solid #f5a623;
+  border-radius: 4px;
+  background: #fff;
+  color: #f5a623;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.view-btn:hover { background: #f5a623; color: #fff; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: #fff;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 1000px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid #eaedf1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.modal-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.modal-close {
+  width: 28px; height: 28px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  color: #8a94a3;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-close:hover { background: #f5f6f8; color: #333; }
+.modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+.modal-footer {
+  padding: 14px 24px;
+  border-top: 1px solid #eaedf1;
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+/* Detail sections in modal */
+.modal-section { margin-bottom: 20px; }
+.modal-section:last-child { margin-bottom: 0; }
+.modal-section-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 12px;
+  padding-left: 10px;
+  border-left: 3px solid #f5a623;
+}
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 24px;
+}
+.modal-field {
+  display: flex;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 13px;
+}
+.modal-field.full { grid-column: 1 / -1; }
+.modal-field-label {
+  min-width: 140px;
+  color: #8a94a3;
+  flex-shrink: 0;
+}
+.modal-field-value {
+  flex: 1;
+  color: #2c3e50;
+  word-break: break-word;
+  white-space: pre-wrap;
+  padding: 4px 10px;
+  background: #fafbfc;
+  border: 1px solid #e4e8ed;
+  border-radius: 4px;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+}
+.modal-field.full .modal-field-value { align-items: flex-start; min-height: 48px; }
+.modal-field-value.empty { color: #c8ced5; font-style: italic; }
+
+/* Buttons */
+.btn {
+  height: 34px;
+  padding: 0 20px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.btn-default { background: #fff; color: #f5a623; border-color: #f5a623; }
+.btn-default:hover { background: #fff8ec; color: #d48a10; border-color: #d48a10; }
+
+/* Form Panel (same as 新增指标标准) */
+.form-panel {
+  background: #fff;
+  border-radius: 6px;
+  padding: 0 0 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-bottom: 12px;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px 14px;
+  border-bottom: 1px solid #f0f2f5;
+  cursor: pointer;
+  user-select: none;
+}
+.section-title {
+  font-size: 15px;
+  font-weight: bold;
+  color: #2c3e50;
+  position: relative;
+  padding-left: 12px;
+}
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 4px; height: 16px;
+  background: #f5a623;
+  border-radius: 2px;
+}
+.section-toggle {
+  color: #8a94a3;
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+.section-toggle.collapsed { transform: rotate(180deg); }
+
+/* Detail Grid */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0 40px;
+  padding: 20px 28px 8px;
+}
+.detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 0 14px;
+}
+.detail-item.full {
+  grid-column: 1 / -1;
+}
+.detail-item label {
+  width: 140px;
+  text-align: right;
+  font-size: 13px;
+  color: #8a94a3;
+  flex-shrink: 0;
+  padding-top: 8px;
+  line-height: 1.4;
+  word-break: break-all;
+}
+.detail-value {
+  flex: 1;
+  min-width: 0;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid #e4e8ed;
+  border-radius: 4px;
+  background: #fafbfc;
+  color: #2c3e50;
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: break-word;
+  white-space: pre-wrap;
+  display: flex;
+  align-items: center;
+}
+.detail-item.full .detail-value {
+  min-height: 60px;
+  align-items: flex-start;
+  padding: 8px 10px;
+}
+.detail-value.empty { color: #c8ced5; font-style: italic; }
+.detail-value .tag {
+  display: inline-block;
+  padding: 1px 8px;
+  background: #fff3e0;
+  color: #f5a623;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: #8a94a3;
+  background: #fff;
+  border-radius: 6px;
+}
+.empty-state .empty-icon {
+  font-size: 48px;
+  color: #d9dfe6;
+  margin-bottom: 16px;
+}
+.empty-state .empty-text { font-size: 14px; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="watermark">
+    <div class="watermark-row" style="margin-top:-6px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+    </div>
+    <div class="watermark-row" style="margin-left:120px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+    </div>
+    <div class="watermark-row" style="margin-left:60px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+    </div>
+    <div class="watermark-row" style="margin-left:180px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+    </div>
+  </div>
+
+  <div class="header-left">
+    <div class="logo-block">
+      <img class="logo-img" src=".codepilot-uploads/1784702798492-image.png" alt="华润金融 CR CAPITAL">
+    </div>
+    <div class="divider"></div>
+    <div class="system-title">通用报送管理系统</div>
+  </div>
+
+  <div class="header-nav">
+    <a class="nav-item" href="通用报送管理系统-导航.html">首页</a>
+    <div class="nav-item active">指标管理</div>
+    <div class="nav-item">报送管理 <span class="arrow">▼</span></div>
+    <div class="nav-item">任务管理</div>
+    <div class="nav-item">模版管理</div>
+    <div class="nav-item">消息管理 <span class="arrow">▼</span></div>
+    <div class="nav-item">系统管理 <span class="arrow">▼</span></div>
+  </div>
+
+  <div class="header-right">
+    <div class="user-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="8" r="4" stroke="#4a5568" stroke-width="1.8"/>
+        <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="#4a5568" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="user-name">金控管理岗</span>
+  </div>
+</div>
+
+<!-- PAGE -->
+<div class="page-container">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="指标管理.html">指标管理</a>
+    <span class="sep">&gt;</span>
+    <span class="current">指标详情</span>
+  </div>
+
+  <!-- Title Card -->
+  <div class="title-card" id="titleCard">
+    <div class="title-main">
+      <div class="title-row">
+        <span class="indicator-name" id="d-name">--</span>
+        <span class="indicator-code" id="d-code">--</span>
+        <span class="status status-off" id="d-status">--</span>
+        <span class="version-tag" id="d-version">--</span>
+        <span class="sec-badge sec-l1" id="d-sec">--</span>
+      </div>
+      <div class="title-meta" id="d-meta"></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="detail-tabs">
+    <div class="detail-tab active" onclick="switchTab('detail', this)">查看详情</div>
+    <div class="detail-tab" onclick="switchTab('history', this)">版本记录</div>
+  </div>
+
+  <!-- Tab Content: 查看详情 -->
+  <div class="tab-content" id="tab-detail">
+  <!-- 业务属性 -->
+  <div class="form-panel">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title">业务属性</div>
+      <div class="section-toggle">▲</div>
+    </div>
+    <div class="detail-grid" id="body-biz"></div>
+  </div>
+
+  <!-- 技术属性 -->
+  <div class="form-panel">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title">技术属性</div>
+      <div class="section-toggle">▲</div>
+    </div>
+    <div class="detail-grid" id="body-tech"></div>
+  </div>
+
+  <!-- 管理属性 -->
+  <div class="form-panel">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title">管理属性</div>
+      <div class="section-toggle">▲</div>
+    </div>
+    <div class="detail-grid" id="body-mgmt"></div>
+  </div>
+
+  </div><!-- end tab-detail -->
+
+  <!-- Tab Content: 版本记录 -->
+  <div class="tab-content" id="tab-history" style="display:none;">
+    <div id="historyIframeWrap" style="display:none;">
+      <iframe id="historyIframe" style="width:100%;border:none;min-height:300px;background:transparent;" scrolling="no"></iframe>
+    </div>
+    <div id="historyLoadError" style="display:none;">
+      <div class="empty-state">
+        <div class="empty-icon">🔒</div>
+        <div class="empty-text">版本记录模块未授权</div>
+      </div>
+    </div>
+  </div><!-- end tab-history -->
+
+</div>
+
+<!-- Version history loaded via iframe from 版本记录.html -->
+
+<!-- Back Button -->
+<div style="text-align:center;padding:8px 0 24px;">
+  <button class="btn btn-default" onclick="window.location.href='指标管理.html'" style="min-width:120px;">
+    <svg viewBox="0 0 24 24" fill="none" style="width:14px;height:14px;"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    返回
+  </button>
+</div>
+
+<!-- Grid data (same dataset as 指标管理.html) -->
+<script type="application/json" id="grid-data">{"headers":["序号","指标标准编号","指标分组编号","指标主题","一级分类","二级分类","三级分类","指标名称","指标英文名称","指标定义","指标类型","指标口径","指标计算公式","指标单位(金控系统层面展示单位)","业务单元","数据范围","指标属性标签","是否监管指标（相对于金控）","报送监管机构（相对于金控）","更新频次","时间维度","业务属性备注","指标来源业务单元系统名称","指标来源业务单元系统报表","业务单元供数部门","指标责任人","业务单元IT对接人","来源金控系统名称","来源金控报表","是否入数据湖","数据类型","数据格式","值域","计量单位 (数据库存储最小单位)","唯一性识别规则数据湖库名","唯一性识别规则数据湖表名","唯一性识别规则公司code","唯一性识别规则报表code字段","唯一性识别规则时间维度字段","唯一性识别规则统计时间字段","时间类型","取数方式","推送表名","指标来源编号","技术属性备注","指标需求部门","指标需求人","指标管理部门","指标状态","是否共享","创建人","创建日期","更新人","更新日期","发布日期","停用日期","停用原因","最新版本号","安全级别"],"rows":[["1","STR000001","STR_CRA_GROUP_00000001","战略","存贷结构","AUM","--","AUM","待金控补充","个人客户在我行的资产管理规模","基础指标","合并报表口径","个人AUM月日均 = （当月每日个人AUM余额之和）÷ 当月天数","亿元","华润银行","包含个人存款、自营理财、代销理财、基金、资管、信托、保险及其他财富管理产品所产生的月日均。","考核指标","否","不涉及","月度","本月末","暂无","数据中台-自助分析平台-个金管理驾驶舱","首页-个金业务情况日报-指标（资产月日均）","财富客群部","李海萍","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","元","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_001","SRC-STR000001","待金控补充","战略部","蔡舒婧","战略部","未发布","待金控补充","肖战","2026-07-23 08:24:01","--","--","--","--","--","V1.0","L1-一般其他数据"],["2","STR000002","STR_CRA_GROUP_00000002","战略","客群结构","公司客群","--","公司客群","待金控补充","大中有效授信客户为分行辖内管户机构批复敞口金额3000万（不含）以上，且表内外授信业务敞口余额1000万（含）以上的客户。以及中小有效授信客户数为分行辖内管户机构批复敞口金额3000万（含）以下中、小、微型企业，且表内外敞口余额大于等于100万的客户。","派生指标","单体报表口径","等于大中有效授信客户数+中小有效授信客户数","户","华润银行","剔除①贷款品种为垫款、委托企业贷款;②机会型业务;③受宏观环境、风险、政策等因素影响退出产品及客户。","高质量指标","否","不涉及","月度","本月末","暂无","手工统计","手工统计","公司金融部","郭沫含+张厦","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","户","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_002","SRC-STR000002","待金控补充","战略部","蔡舒婧","战略部","已发布","待金控补充","张敏","2026-07-28 14:13:55","--","--","--","--","--","V1.0","L2-一般敏感数据"],["3","STR000003","STR_CRA_GROUP_00000003","战略","资产负债简表","--","--","总资产","待金控补充","商业银行拥有或控制的，预期能带来经济利益的全部资源，其金额等于合并资产负债表中的资产总计项目","基础指标","合并报表口径","资产总计项目","亿元","华润银行","120","考核指标","--","不涉及","月度","本月末","暂无","数据中台","合并资产负债表","计划财务部","滕天瑶","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","元","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_003","SRC-STR000003","待金控补充","战略部","蔡舒婧","战略部","已下线","待金控补充","李华","2026-08-02 11:24:45","--","--","--","--","--","V1.0","L3-重要数据"],["4","STR000004","STR_CRA_GROUP_00000004","战略","损益简表","--","--","营业收入","待金控补充","企业在日常经营活动中形成的、会导致所有者权益增加的、与所有者投入资本无关的经济利益总流入。对金融机构而言，是各项经营业务实现的全部主营业务净收入总和。","基础指标","合并报表口径","合并利润表的营业收入项目本年累计额营业收入=利息净收入+非息净收入","亿元","华润银行","120","高质量指标","--","不涉及","月度","本月末","暂无","数据中台","160","--","滕天瑶","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","元","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_004","SRC-STR000004","待金控补充","战略部","蔡舒婧","战略部","未发布","待金控补充","王芳","2026-07-26 10:39:36","--","--","--","--","--","V1.0","L4-核心数据"],["5","STR000005","STR_CRA_GROUP_00000005","战略","收入结构","条线营收","--","条线营收","待金控补充","企业在日常经营活动中形成的、会导致所有者权益增加的、与所有者投入资本无关的经济利益总流入。对金融机构而言，是各项经营业务实现的全部主营业务净收入总和。","基础指标","单体考核口径","单体利润表的营业收入项目本年累计额营业收入=利息净收入+非息净收入","亿元","华润银行","120","考核指标","--","不涉及","月度","本月末","暂无","数据中台","160","--","滕天瑶","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","元","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_005","SRC-STR000005","待金控补充","战略部","蔡舒婧","战略部","已发布","待金控补充","刘洋","2026-07-27 15:12:57","--","--","--","--","--","V1.0","L1-一般其他数据"],["6","STR000006","STR_CRA_GROUP_00000006","战略","成本结构","公司条线成本","--","公司条线成本","待金控补充","公司业务条线当期全部成本费用合计金额","基础指标","单体考核口径","业务及管理费+风险成本+资本成本","亿元","华润银行","120","高质量指标","--","不涉及","月度","本月末","暂无","数据中台","160","--","易雨辰","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","元","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_006","SRC-STR000006","待金控补充","战略部","蔡舒婧","战略部","已下线","待金控补充","陈静","2026-08-17 15:59:58","--","--","--","--","--","V1.0","L2-一般敏感数据"],["7","STR000007","STR_CRA_GROUP_00000007","战略","关键监测指标","流动性风险","--","流动性风险","待金控补充","商业银行可用的稳定资金与所需的稳定资金的比率。","派生指标","合并报表口径","可用的稳定资金÷所需的稳定资金","%","华润银行","监管合并报表数据（含村镇银行）","考核指标","否","不涉及","季度","本季末","暂无","数据中台","G2502-合并","计划财务部","陈美兰","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","%","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_007","SRC-STR000007","待金控补充","战略部","蔡舒婧","战略部","未发布","待金控补充","杨帆","2026-08-04 12:24:58","--","--","--","--","--","V1.0","L3-重要数据"],["8","STR000008","STR_CRA_GROUP_00000008","战略","关键监测指标","流动性风险","--","流动性风险","待金控补充","商业银行流动性缺口与90天内到期表内外资产的比率。分子：流动性缺口=90天内累计到期期限缺口+分摊到90天以上的活期存款","派生指标","单体报表口径","流动性缺口÷90天内到期表内外资产","%","华润银行","监管单体报表数据（不含村镇银行）","高质量指标","否","不涉及","季度","本季末","暂无","数据中台","G21-单体","计划财务部","陈美兰","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","%","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_008","SRC-STR000008","待金控补充","战略部","蔡舒婧","战略部","已发布","待金控补充","赵磊","2026-08-06 10:39:37","--","--","--","--","--","V1.0","L4-核心数据"],["9","STR000009","STR_CRA_GROUP_00000009","战略","利率结构","资产","--","资产","待金控补充","全行对公、个人等客户贷款利息收入，对应贷款日均余额的占比，反映整体信贷放贷收益水平","基础指标","单体报表口径","贷款对客收益率=贷款利息收入/贷款年日均/实际天数*360","%","华润银行","120","考核指标","--","不涉及","月度","本月末","暂无","数据中台","累计息差表","计划财务部","邵淑芬","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","%","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_009","SRC-STR000009","待金控补充","战略部","蔡舒婧","战略部","已下线","待金控补充","周婷","2026-08-16 13:53:02","--","--","--","--","--","V1.0","L1-一般其他数据"],["10","STR000010","STR_CRA_GROUP_00000010","战略","利率结构","负债","--","负债","待金控补充","统计期内付息负债产生的利息支出，与付息负债日均余额的比值，反映银行负债端资金成本水平。","基础指标","单体报表口径","付息负债付息率=利息支出/付息负债年日均/实际天数*360","%","华润银行","120","高质量指标","--","不涉及","月度","本月末","暂无","数据中台","累计息差表","计划财务部","邵淑芬","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","%","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_010","SRC-STR000010","待金控补充","战略部","蔡舒婧","战略部","未发布","待金控补充","吴强","2026-09-06 17:29:09","--","--","--","--","--","V1.0","L2-一般敏感数据"],["11","RS000001","RS_CRA_GROUP_00000001","风险","风险偏好指标","市场风险","--","市场风险","--","--","风偏指令性指标","-","交易账户本币债券投资总头寸","亿元","华润银行","--","考核指标","--","--","--","本季末","--","--","--","--","--","--","--","风险集中度","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_001","SRC-RS000001","--","--","--","--","已发布","--","孙丽","2026-09-01 10:41:36","--","--","--","--","--","V1.0","L3-重要数据"],["12","RS000002","RS_CRA_GROUP_00000002","风险","问题资产指标","不良类","不良资产规模","不良资产总额","--","--","--","--","--","--","华润银行","--","高质量指标","--","--","--","本月末","--","--","--","--","--","--","--","手工数据","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_002","SRC-RS000002","--","--","--","--","已下线","--","郑浩","2026-08-25 17:07:40","--","--","--","--","--","V1.0","L4-核心数据"],["13","RS000003","RS_CRA_GROUP_00000003","风险","问题资产指标","关注类","关注资产规模","关注资产率","186","--","--","--","--","--","华润银行","--","考核指标","--","--","--","本月末","--","--","--","--","--","--","--","手工数据","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_003","SRC-RS000003","--","--","--","--","未发布","--","黄梅","2026-09-09 14:45:51","--","--","--","--","--","V1.0","L1-一般其他数据"],["14","RS000004","RS_CRA_GROUP_00000004","风险","问题资产指标","关注类","关注资产规模","关注类资产总额","--","--","--","--","--","--","华润银行","--","高质量指标","--","--","--","本月末","--","--","--","--","--","--","--","手工数据","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_004","SRC-RS000004","--","--","--","--","已发布","--","林峰","2026-08-18 12:39:45","--","--","--","--","--","V1.0","L2-一般敏感数据"],["15","RS000005","RS_CRA_GROUP_00000005","风险","问题资产指标","问题资产类","问题资产规模","问题资产总规模","--","--","--","--","--","--","华润银行","--","考核指标","--","--","--","本月末","--","--","--","--","--","--","--","ADS-问题资产关键指标","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_005","SRC-RS000005","--","--","--","--","已下线","--","徐雪","2026-09-17 09:43:04","--","--","--","--","--","V1.0","L3-重要数据"],["16","RS000006","RS_CRA_GROUP_00000006","风险","问题资产指标","正常但预警类","正常但预警资产规模","正常但预警资产总额","--","--","--","--","--","--","华润银行","--","高质量指标","--","--","--","本月末","--","--","--","--","--","--","--","手工数据","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_006","SRC-RS000006","--","--","--","--","未发布","--","肖战","2026-09-06 16:54:20","--","--","--","--","--","V1.0","L4-核心数据"],["17","RS000007","RS_CRA_GROUP_00000007","风险","问题资产指标","其他关键指标","--","其他关键指标","--","--","--","--","--","--","华润银行","--","考核指标","--","--","--","本月末","--","--","--","--","--","--","--","手工数据","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_007","SRC-RS000007","--","--","--","--","已发布","--","张敏","2026-10-11 15:33:52","--","--","--","--","--","V1.0","L1-一般其他数据"],["18","RS000008","RS_CRA_GROUP_00000008","风险","贷款五级分类表","--","--","--","--","--","基础指标","--","--","--","华润银行","贷款五级分类余额同《表G12贷款质量迁徙情况表》中贷款质量迁徙情况一致","高质量指标","--","--","--","本月末","全行整体数据","--","--","--","钟雯雅","--","--","--","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_008","SRC-RS000008","--","--","--","--","已下线","--","李华","2026-09-12 11:43:39","--","--","--","--","--","V1.0","L2-一般敏感数据"]]}</script>
+
+<script>
+const GRID = JSON.parse(document.getElementById('grid-data').textContent);
+const H = GRID.headers;
+
+// Column index lookup
+function col(name) { return H.findIndex(h => h.indexOf(name) >= 0); }
+const C = {
+  no: col('序号'), code: col('指标标准编号'), groupCode: col('指标分组编号'), theme: col('指标主题'),
+  l1: col('一级分类'), l2: col('二级分类'), l3: col('三级分类'),
+  name: col('指标名称'), nameEn: col('指标英文名称'), def: col('指标定义'),
+  type: col('指标类型'), caliber: col('指标口径'), formula: col('指标计算公式'),
+  unit: col('指标单位'), biz: col('业务单元'), dataRange: col('数据范围'),
+  assessTag: col('指标属性标签'),
+  isRegulator: col('是否监管指标'), regulatorOrg: col('报送监管机构'),
+  freq: col('更新频次'), timeDim: col('时间维度'), bizRemark: col('业务属性备注'),
+  srcSys: col('指标来源业务单元系统名称'), srcReport: col('指标来源业务单元系统报表'),
+  srcDept: col('业务单元供数部门'), srcBizContact: col('指标责任人'),
+  srcItContact: col('业务单元IT对接人'),
+  srcCtrl: col('来源金控系统名称'), srcCtrlReport: col('来源金控报表'),
+  inLake: col('是否入数据湖'), dataType: col('数据类型'), dataFormat: col('数据格式'),
+  valueRange: col('值域'), minUnit: col('计量单位'),
+  lakeDb: col('唯一性识别规则数据湖库名'), lakeTable: col('唯一性识别规则数据湖表名'),
+  lakeCompany: col('唯一性识别规则公司code'), lakeReportCode: col('唯一性识别规则报表code字段'),
+  lakeTimeDim: col('唯一性识别规则时间维度字段'), lakeStatTime: col('唯一性识别规则统计时间字段'),
+  timeType: col('时间类型'), fetchMode: col('取数方式'),
+  pushTable: col('推送表名'), sourceCode: col('指标来源编号'), techRemark: col('技术属性备注'),
+  fillDept: col('指标需求部门'), owner: col('指标需求人'), mgmtDept: col('指标管理部门'),
+  status: col('指标状态'), shared: col('是否共享'),
+  creator: col('创建人'), createTime: col('创建日期'),
+  updater: col('更新人'), updateTime: col('更新日期'),
+  publishTime: col('发布日期'), offlineTime: col('停用日期'), offlineReason: col('停用原因'),
+  version: col('最新版本号'), sec: col('安全级别')
+};
+
+// Get code from URL
+function getUrlParam(name) {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}
+
+// Find the row by indicator code
+function findRow(code) {
+  if (!code) return null;
+  return GRID.rows.find(r => r[C.code] === code) || null;
+}
+
+const CODE = getUrlParam('code');
+const ROW = findRow(CODE);
+
+// Format display value
+function val(idx, row) {
+  var r = row || ROW;
+  if (!r || idx < 0) return null;
+  const v = r[idx];
+  if (v === '' || v == null || v === '--' || v === '不涉及' || v === '待金控补充' || v === '待银行补充') {
+    return null;
+  }
+  return v;
+}
+function show(idx, row) {
+  const v = val(idx, row);
+  return v == null ? '--' : v;
+}
+
+// Status styling
+function statusInfo(s) {
+  if (!s) return { text: '--', cls: 'status-off' };
+  if (s.indexOf('未') >= 0) return { text: '未发布', cls: 'status-unpub' };
+  if (s.indexOf('下线') >= 0) return { text: '已下线', cls: 'status-off' };
+  return { text: '已发布', cls: 'status-pub' };
+}
+function secBadgeClass(s) {
+  if (!s) return 'sec-l1';
+  if (s.indexOf('L1') === 0) return 'sec-l1';
+  if (s.indexOf('L2') === 0) return 'sec-l2';
+  if (s.indexOf('L3') === 0) return 'sec-l3';
+  if (s.indexOf('L4') === 0) return 'sec-l4';
+  return 'sec-l1';
+}
+
+// Render page
+function render() {
+  if (!ROW) {
+    document.querySelector('.page-container').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">⚠</div><div class="empty-text">未找到该指标信息</div><button class="btn btn-default" onclick="location.href=\'指标管理.html\'">返回指标管理</button></div>';
+    return;
+  }
+
+  // Title card
+  document.getElementById('d-name').textContent = show(C.name);
+  document.getElementById('d-code').textContent = show(C.code);
+  const sInfo = statusInfo(ROW[C.status]);
+  const statusEl = document.getElementById('d-status');
+  statusEl.textContent = sInfo.text;
+  statusEl.className = 'status ' + sInfo.cls;
+  document.getElementById('d-version').textContent = show(C.version);
+  const secEl = document.getElementById('d-sec');
+  secEl.textContent = show(C.sec);
+  secEl.className = 'sec-badge ' + secBadgeClass(ROW[C.sec]);
+
+  // Meta info
+  const meta = document.getElementById('d-meta');
+  const metaItems = [
+    { label: '指标主题', value: show(C.theme) },
+    { label: '指标口径', value: show(C.caliber) },
+    { label: '业务单元', value: show(C.biz) },
+    { label: '更新频次', value: show(C.freq) },
+    { label: '创建人', value: show(C.creator) },
+    { label: '创建日期', value: show(C.createTime) },
+  ];
+  meta.innerHTML = metaItems.map(m =>
+    `<div class="meta-item"><span class="meta-label">${m.label}:</span><span class="meta-value">${m.value}</span></div>`
+  ).join('');
+
+  // === 业务属性 (与新增页面保持一致) ===
+  renderSection('body-biz', [
+    { label: '指标标准编号', value: show(C.code) },
+    { label: '指标分组编号', value: show(C.groupCode) },
+    { label: '指标名称', value: show(C.name) },
+    { label: '指标英文名称', value: show(C.nameEn) },
+    { label: '业务单元', value: show(C.biz) },
+    { label: '指标主题', value: show(C.theme), tag: true },
+    { label: '一级分类', value: show(C.l1) },
+    { label: '二级分类', value: show(C.l2) },
+    { label: '三级分类', value: show(C.l3) },
+    { label: '指标类型', value: show(C.type), tag: true },
+    { label: '指标口径', value: show(C.caliber), tag: true },
+    { label: '指标单位', value: show(C.unit) },
+    { label: '数据范围', value: show(C.dataRange) },
+    { label: '更新频次', value: show(C.freq), tag: true },
+    { label: '时间维度', value: show(C.timeDim), tag: true },
+    { label: '业务单元供数部门', value: show(C.srcDept) },
+    { label: '业务单元IT对接人', value: show(C.srcItContact) },
+    { label: '指标责任人', value: show(C.srcBizContact) },
+    { label: '指标来源业务单元系统名称', value: show(C.srcSys) },
+    { label: '指标来源业务单元系统报表', value: show(C.srcReport) },
+    { label: '指标属性标签', value: show(C.assessTag), tag: true },
+    { label: '是否监管指标', value: show(C.isRegulator), tag: true },
+    { label: '报送监管机构', value: show(C.regulatorOrg) },
+    { label: '指标计算公式', value: show(C.formula), fullWidth: true },
+    { label: '指标定义', value: show(C.def), fullWidth: true },
+    { label: '业务属性备注', value: show(C.bizRemark), fullWidth: true },
+  ]);
+
+  // === 技术属性 (与新增页面保持一致) ===
+  renderSection('body-tech', [
+    { label: '来源金控系统名称', value: show(C.srcCtrl) },
+    { label: '来源金控系统报表', value: show(C.srcCtrlReport) },
+    { label: '时间类型', value: show(C.timeType) },
+    { label: '数据类型', value: show(C.dataType) },
+    { label: '数据格式', value: show(C.dataFormat) },
+    { label: '值域', value: show(C.valueRange) },
+    { label: '计量单位', value: show(C.minUnit) },
+    { label: '是否入数据湖', value: show(C.inLake), tag: true },
+    { label: '唯一性识别规则金融湖库名', value: show(C.lakeDb) },
+    { label: '唯一性识别规则金融湖表名', value: show(C.lakeTable) },
+    { label: '唯一性识别规则公司code', value: show(C.lakeCompany) },
+    { label: '唯一性识别规则时间维度字段', value: show(C.lakeTimeDim) },
+    { label: '唯一性识别规则统计时间字段', value: show(C.lakeStatTime) },
+    { label: '唯一性识别规则报表名称code', value: show(C.lakeReportCode) },
+    { label: '取数方式', value: show(C.fetchMode) },
+    { label: '推送表名', value: show(C.pushTable) },
+    { label: '指标来源编号', value: show(C.sourceCode) },
+    { label: '技术属性备注', value: show(C.techRemark), fullWidth: true },
+  ]);
+
+  // === 管理属性 (与新增页面保持一致 + 保留所有管理字段) ===
+  renderSection('body-mgmt', [
+    { label: '指标需求部门', value: show(C.fillDept) },
+    { label: '指标需求人', value: show(C.owner) },
+    { label: '指标管理部门', value: show(C.mgmtDept) },
+    { label: '安全级别', value: show(C.sec), tag: true },
+    { label: '是否共享', value: show(C.shared), tag: true },
+    { label: '指标状态', value: sInfo.text, tag: true },
+    { label: '最新版本号', value: show(C.version), tag: true },
+    { label: '创建人', value: show(C.creator) },
+    { label: '创建日期', value: show(C.createTime) },
+    { label: '更新人', value: show(C.updater) },
+    { label: '更新日期', value: show(C.updateTime) },
+    { label: '发布日期', value: show(C.publishTime) },
+    { label: '停用日期', value: show(C.offlineTime) },
+    { label: '停用原因', value: show(C.offlineReason), fullWidth: true },
+  ]);
+}
+
+function renderSection(bodyId, fields) {
+  const body = document.getElementById(bodyId);
+  body.innerHTML = fields.map(f => {
+    const isEmpty = f.value == null || f.value === '' || f.value === '--';
+    let display = isEmpty ? '<span class="empty">--</span>' : escapeHtml(f.value);
+    if (!isEmpty && f.tag) display = `<span class="tag">${display}</span>`;
+    const cls = ['detail-item', f.fullWidth ? 'full' : ''].filter(Boolean).join(' ');
+    return `<div class="${cls}"><label>${f.label}</label><div class="detail-value${isEmpty ? ' empty' : ''}">${display}</div></div>`;
+  }).join('');
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Toggle section collapse
+function toggleSection(headerEl) {
+  const body = headerEl.nextElementSibling;
+  const toggle = headerEl.querySelector('.section-toggle');
+  if (body.style.display === 'none') {
+    body.style.display = '';
+    toggle.classList.remove('collapsed');
+  } else {
+    body.style.display = 'none';
+    toggle.classList.add('collapsed');
+  }
+}
+
+// Tab switching
+function switchTab(tabName, el) {
+  document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+  document.getElementById('tab-' + tabName).style.display = '';
+  // Load version history iframe when switching to history tab
+  if (tabName === 'history') {
+    loadHistoryIframe();
+  }
+}
+
+// Load version history from 版本记录.html via iframe
+var _versionReady = false;
+var _historyResolved = false;
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'versionReady') {
+    _versionReady = true;
+    _historyResolved = true;
+    var iframe = document.getElementById('historyIframe');
+    if (iframe) iframe.style.height = Math.max(e.data.height || 400, 200) + 'px';
+  }
+});
+
+function loadHistoryIframe() {
+  var wrap = document.getElementById('historyIframeWrap');
+  var errDiv = document.getElementById('historyLoadError');
+  var iframe = document.getElementById('historyIframe');
+  if (iframe.src) return;
+  wrap.style.display = '';
+  var url = '版本记录.html?embed=1' + (CODE ? '&code=' + encodeURIComponent(CODE) : '');
+
+  iframe.onload = function() {
+    if (_historyResolved) return;
+    setTimeout(function() {
+      if (_historyResolved) return;
+      try {
+        var title = iframe.contentDocument.title || '';
+        if (title.indexOf('版本记录') >= 0) {
+          // File loaded OK
+          _historyResolved = true;
+          var h = iframe.contentDocument.body.scrollHeight;
+          iframe.style.height = Math.max(h, 200) + 'px';
+        } else {
+          _historyResolved = true;
+          wrap.style.display = 'none';
+          errDiv.style.display = '';
+        }
+      } catch(e) {
+        // Can't access document — likely file not found
+        _historyResolved = true;
+        wrap.style.display = 'none';
+        errDiv.style.display = '';
+      }
+    }, 500);
+  };
+
+  iframe.src = url;
+
+  // Final fallback after 4 seconds
+  setTimeout(function() {
+    if (!_historyResolved && !_versionReady) {
+      _historyResolved = true;
+      wrap.style.display = 'none';
+      errDiv.style.display = '';
+    }
+  }, 4000);
+}
+
+// Init
+render();
+</script>
+
+</body>
+</html>

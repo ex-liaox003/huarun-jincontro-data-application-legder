@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>通用报送管理系统 - 华润金融</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+  background: #f5f6f8;
+  min-height: 100vh;
+  color: #2c3e50;
+}
+
+/* ============ HEADER ============ */
+.header {
+  position: relative;
+  background: #ffffff;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px 0 24px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+
+/* watermark layer */
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: repeating-linear-gradient(
+    -22deg,
+    transparent 0px,
+    transparent 140px,
+    rgba(0,0,0,0.028) 140px,
+    rgba(0,0,0,0.028) 320px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+.watermark {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.55;
+}
+.watermark-row {
+  display: flex;
+  gap: 90px;
+  white-space: nowrap;
+  transform: rotate(-18deg);
+  transform-origin: left top;
+  margin: -20px 0;
+  font-size: 12px;
+  color: rgba(70,70,70,0.14);
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+.watermark-row span { flex-shrink: 0; }
+
+/* Header content sits above watermark */
+.header-left,
+.header-nav,
+.header-right { position: relative; z-index: 2; }
+
+/* ============ LOGO AREA ============ */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+}
+.logo-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-img {
+  height: 56px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+.divider {
+  width: 1px;
+  height: 32px;
+  background: linear-gradient(180deg, transparent, #d5d9de 30%, #d5d9de 70%, transparent);
+}
+.system-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #2c3e50;
+  letter-spacing: 2px;
+}
+
+/* ============ NAV ============ */
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+  margin: 0 20px;
+}
+.nav-item {
+  padding: 8px 22px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  color: #4a5568;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  font-weight: 500;
+  position: relative;
+}
+.nav-item:hover {
+  color: #f5a623;
+}
+.nav-item.active {
+  background: linear-gradient(180deg, #fff3e0 0%, #ffe4c1 100%);
+  color: #f5a623;
+  font-weight: bold;
+}
+.nav-item .arrow {
+  font-size: 10px;
+  color: #8a94a3;
+  margin-left: 2px;
+  transition: transform 0.2s;
+}
+.nav-item:hover .arrow {
+  color: #f5a623;
+}
+
+/* ============ RIGHT ============ */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-left: 20px;
+}
+.user-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid #4a5568;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.user-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.user-name {
+  font-size: 15px;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+/* ============ BODY DEMO AREA ============ */
+.body-area {
+  padding: 24px;
+  color: #6b7280;
+  font-size: 14px;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+
+  <!-- Watermark -->
+  <div class="watermark">
+    <div class="watermark-row" style="margin-top:-6px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span>
+    </div>
+    <div class="watermark-row" style="margin-left:120px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span>
+    </div>
+    <div class="watermark-row" style="margin-left:60px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span>
+    </div>
+    <div class="watermark-row" style="margin-left:180px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span>
+    </div>
+  </div>
+
+  <!-- Left: Logo -->
+  <div class="header-left">
+    <div class="logo-block">
+      <img class="logo-img" src=".codepilot-uploads/1784702798492-image.png" alt="华润金融 CR CAPITAL">
+    </div>
+    <div class="divider"></div>
+    <div class="system-title">通用报送管理系统</div>
+  </div>
+
+  <!-- Center: Nav -->
+  <div class="header-nav">
+    <div class="nav-item">首页</div>
+    <a class="nav-item" href="指标管理.html" style="text-decoration:none;color:inherit">指标管理</a>
+    <div class="nav-item">报送管理 <span class="arrow">▼</span></div>
+    <div class="nav-item active">任务管理</div>
+    <div class="nav-item">模版管理</div>
+    <div class="nav-item">消息管理 <span class="arrow">▼</span></div>
+    <div class="nav-item">系统管理 <span class="arrow">▼</span></div>
+  </div>
+
+  <!-- Right: User -->
+  <div class="header-right">
+    <div class="user-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="8" r="4" stroke="#4a5568" stroke-width="1.8"/>
+        <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="#4a5568" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="user-name">金控管理岗</span>
+  </div>
+</div>
+
+<div class="body-area">
+  <!-- Placeholder for content below the header -->
+</div>
+
+</body>
+</html>

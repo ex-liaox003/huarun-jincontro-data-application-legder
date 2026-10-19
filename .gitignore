@@ -1,0 +1,7 @@
+.claude/
+.codepilot-uploads/
+.uploads/
+_tpl_tmp/
+bash.exe.stackdump
+*.stackdump
+~$*

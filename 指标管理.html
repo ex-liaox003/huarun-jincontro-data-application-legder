@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>指标管理 - 通用报送管理系统</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+  background: #f5f6f8;
+  min-height: 100vh;
+  color: #2c3e50;
+  font-size: 13px;
+}
+
+/* ============ HEADER (same as index) ============ */
+.header {
+  position: relative;
+  background: #ffffff;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px 0 24px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+.watermark {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  overflow: hidden; pointer-events: none; z-index: 1; opacity: 0.55;
+}
+.watermark-row {
+  display: flex; gap: 90px; white-space: nowrap;
+  transform: rotate(-18deg); transform-origin: left top;
+  margin: -20px 0; font-size: 12px;
+  color: rgba(70,70,70,0.14); letter-spacing: 1px; font-weight: bold;
+}
+.watermark-row span { flex-shrink: 0; }
+.header-left, .header-nav, .header-right { position: relative; z-index: 2; }
+.header-left { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
+.logo-block { display: flex; align-items: center; gap: 10px; }
+.logo-img { height: 56px; width: auto; display: block; object-fit: contain; }
+.divider {
+  width: 1px; height: 32px;
+  background: linear-gradient(180deg, transparent, #d5d9de 30%, #d5d9de 70%, transparent);
+}
+.system-title { font-size: 20px; font-weight: bold; color: #2c3e50; letter-spacing: 2px; }
+.header-nav {
+  display: flex; align-items: center; gap: 4px;
+  flex: 1; justify-content: center; margin: 0 20px;
+}
+.nav-item {
+  padding: 8px 22px; height: 40px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 15px; color: #4a5568;
+  cursor: pointer; border-radius: 4px;
+  transition: all 0.2s; font-weight: 500;
+  text-decoration: none;
+}
+.nav-item:hover { color: #f5a623; }
+.nav-item.active {
+  background: linear-gradient(180deg, #fff3e0 0%, #ffe4c1 100%);
+  color: #f5a623; font-weight: bold;
+}
+.nav-item .arrow { font-size: 10px; color: #8a94a3; margin-left: 2px; }
+.nav-item:hover .arrow { color: #f5a623; }
+.header-right {
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0; padding-left: 20px;
+}
+.user-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1.5px solid #4a5568;
+  display: flex; align-items: center; justify-content: center;
+}
+.user-icon svg { width: 18px; height: 18px; }
+.user-name { font-size: 15px; color: #2c3e50; font-weight: 500; }
+
+/* ============ PAGE MAIN ============ */
+.page-container { padding: 12px 16px; }
+
+/* Filter Panel */
+.filter-panel {
+  background: #fff;
+  border-radius: 6px 6px 0 0;
+  padding: 20px 24px 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-bottom: 0;
+  position: relative;
+}
+.filter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px 40px;
+  align-items: center;
+}
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filter-row label {
+  min-width: 84px;
+  text-align: right;
+  font-size: 13px;
+  color: #4a5568;
+  flex-shrink: 0;
+}
+.filter-row label::after { content: ':'; margin-left: 2px; }
+.filter-row .ms-option::after { content: none !important; }
+.filter-input, .filter-select {
+  flex: 1;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #d9dfe6;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #2c3e50;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.filter-input::placeholder { color: #b8c1cc; }
+.filter-input { padding-right: 32px; }
+.filter-input:focus, .filter-select:focus, textarea:focus { border-color: #f5a623; box-shadow: 0 0 0 2px rgba(245,166,35,0.15); }
+.filter-select {
+  appearance: none;
+  padding-right: 28px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  cursor: pointer;
+}
+/* Chip inside dropdown (更新频次 shown as tags) */
+.chip-select {
+  flex: 1;
+  min-height: 32px;
+  border: 1px solid #d9dfe6;
+  border-radius: 4px;
+  padding: 3px 28px 3px 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+}
+.chip-select::after {
+  content: '';
+  position: absolute;
+  right: 10px; top: 50%;
+  width: 0; height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #888;
+  transform: translateY(-50%);
+}
+.chip {
+  background: #fff3e0;
+  color: #f5a623;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.chip .close {
+  color: #f7b84e;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* ===== Multi-Select 多选下拉 ===== */
+.ms-wrap { position: relative; width: 100%; }
+.ms-trigger {
+  display: flex; align-items: center; justify-content: space-between;
+  min-height: 32px; padding: 3px 26px 3px 8px;
+  border: 1px solid #d9dfe6; border-radius: 4px;
+  background: #fff; cursor: pointer; position: relative;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ms-trigger:hover { border-color: #f5a623; }
+.ms-trigger.open { border-color: #f5a623; box-shadow: 0 0 0 2px rgba(245,166,35,0.15); }
+.ms-chips { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; min-width: 0; align-items: center; }
+.ms-placeholder { color: #b8c1cc; font-size: 13px; line-height: 24px; }
+.ms-chip {
+  background: #fff3e0; color: #f5a623; padding: 2px 6px;
+  border-radius: 3px; font-size: 12px;
+  display: inline-flex; align-items: center; gap: 3px;
+  white-space: nowrap; line-height: 1.4;
+}
+.ms-chip-x {
+  cursor: pointer; font-size: 11px; color: #f7b84e;
+  line-height: 1; margin-left: 1px;
+}
+.ms-chip-x:hover { color: #d48a10; }
+.ms-arrow {
+  position: absolute; right: 8px; top: 50%;
+  width: 0; height: 0;
+  border-left: 4px solid transparent; border-right: 4px solid transparent;
+  border-top: 5px solid #888;
+  transform: translateY(-50%);
+  transition: transform 0.2s;
+  pointer-events: none;
+}
+.ms-trigger.open .ms-arrow { transform: translateY(-50%) rotate(180deg); }
+.ms-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  z-index: 2000; background: #fff;
+  border: 1px solid #d9dfe6; border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  max-height: 220px; overflow-y: auto;
+  display: none; padding: 4px 0;
+}
+.ms-dropdown.show { display: block; }
+.ms-option {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px; cursor: pointer;
+  font-size: 13px; color: #333;
+  transition: background 0.15s; user-select: none;
+}
+.ms-option:hover { background: #fff8ec; }
+.ms-option.checked { color: #f5a623; font-weight: 500; }
+/* 隐藏原生 checkbox，但保留功能（点击 label 可触发） */
+.ms-option input[type="checkbox"] {
+  position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none;
+}
+.ms-opt-chk {
+  width: 14px; height: 14px; border: 1.5px solid #d9dfe6;
+  border-radius: 3px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #fff; transition: all 0.15s;
+  position: relative;
+}
+/* 用相邻兄弟选择器：checkbox 选中 → 样式变化 */
+.ms-option input[type="checkbox"]:checked + .ms-opt-chk {
+  background: #f5a623; border-color: #f5a623;
+}
+.ms-option input[type="checkbox"]:checked + .ms-opt-chk::after {
+  content: "✓";
+}
+
+.filter-actions {
+  grid-column: 3 / 4;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  align-items: center;
+}
+.btn {
+  height: 32px;
+  padding: 0 20px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.btn-primary {
+  background: #f5a623;
+  color: #fff;
+  border-color: #f5a623;
+}
+.btn-primary:hover { background: #d48a10; }
+.btn-default {
+  background: #fff;
+  color: #f5a623;
+  border-color: #f5a623;
+}
+.btn-default:hover { background: #fff8ec; color: #d48a10; border-color: #d48a10; }
+.btn-danger {
+  background: #e60012;
+  color: #fff;
+  border-color: #e60012;
+}
+.btn-danger:hover { background: #c4000f; }
+.btn-outline-primary {
+  background: #fff;
+  color: #f5a623;
+  border-color: #f5a623;
+}
+.btn-outline-primary:hover { background: #fff3e0; }
+
+/* Table Panel */
+.table-panel {
+  background: #fff;
+  border-radius: 0 0 6px 6px;
+  padding: 14px 16px 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.action-left, .action-right { display: flex; gap: 8px; }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #eaedf1;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+.tab {
+  padding: 8px 26px;
+  font-size: 13px;
+  color: #4a5568;
+  cursor: pointer;
+  border-radius: 4px 4px 0 0;
+  border: 1px solid #f5a623;
+  border-bottom: none;
+  margin-bottom: -1px;
+  background: #fff;
+  transition: all 0.15s;
+}
+.tab:hover { color: #fff; background: #f5a623; border-color: #f5a623; }
+.tab.active {
+  background: #f5a623;
+  color: #fff;
+  border-color: #f5a623;
+  font-weight: bold;
+}
+
+/* Data Table */
+.data-table {
+  border-collapse: collapse;
+  font-size: 13px;
+  table-layout: auto;
+}
+.data-table thead th {
+  background: #f5f8fc;
+  color: #4a5568;
+  font-weight: bold;
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eaedf1;
+  border-right: 1px solid #eaedf1;
+  white-space: nowrap;
+}
+.data-table thead th:first-child { padding-left: 16px; }
+.data-table thead th:last-child { border-right: none; }
+.data-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f2f5;
+  border-right: 1px solid #eaedf1;
+  color: #333;
+  white-space: nowrap;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.data-table tbody td:first-child { padding-left: 16px; }
+.data-table tbody td:last-child { border-right: none; }
+.data-table tbody tr:hover { background: #fafcff; }
+/* Sticky first cols (checkbox + 序号 + 指标标准编号) */
+.data-table th.sticky-col,
+.data-table td.sticky-col {
+  position: sticky;
+  background: inherit;
+  z-index: 2;
+}
+.data-table thead th.sticky-col { background: #f5f8fc; z-index: 3; }
+.data-table tbody td.sticky-col { background: #fff; }
+.data-table tbody tr:hover td.sticky-col { background: #fafcff; }
+.sticky-col-0 { left: 0; min-width: 40px; }
+.sticky-col-1 { left: 40px; min-width: 60px; }
+.sticky-col-2 { left: 100px; min-width: 110px; box-shadow: 2px 0 4px -2px rgba(0,0,0,0.08); }
+
+/* Sticky columns on the right end: 最新版本号 → 指标状态 → 操作 */
+.data-table th.sticky-right,
+.data-table td.sticky-right {
+  position: sticky;
+  background: #fff;
+  z-index: 2;
+}
+.data-table thead th.sticky-right { background: #f5f8fc; z-index: 3; }
+.data-table tbody tr:hover td.sticky-right { background: #fafcff; }
+.sticky-right-2 { right: 232px; min-width: 100px; }  /* 最新版本号 */
+.sticky-right-1 { right: 112px; min-width: 120px; box-shadow: -2px 0 4px -2px rgba(0,0,0,0.08); }  /* 安全级别 */
+.sticky-op       { right: 0;   min-width: 112px; box-shadow: -2px 0 4px -2px rgba(0,0,0,0.08); }
+
+/* Legacy sticky-op alias — kept for backwards compat, styling now defined above */
+.data-table th.sticky-op,
+.data-table td.sticky-op {
+  position: sticky;
+  background: #fff;
+  z-index: 2;
+}
+.data-table thead th.sticky-op { background: #f5f8fc; z-index: 3; }
+.data-table tbody tr:hover td.sticky-op { background: #fafcff; }
+
+.checkbox {
+  width: 14px; height: 14px;
+  border: 1px solid #c8ced5;
+  border-radius: 2px;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+  background: #fff;
+}
+.code-link {
+  color: #f5a623;
+  cursor: pointer;
+}
+.code-link:hover { text-decoration: underline; }
+
+/* Status */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+}
+.status::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.status-unpub { color: #f5a623; }
+.status-unpub::before { background: #f5a623; }
+.status-pub { color: #52c41a; }
+.status-pub::before { background: #52c41a; }
+.status-off { color: #b8c1cc; }
+.status-off::before { background: #b8c1cc; }
+
+/* Action links */
+.op-link {
+  color: #f5a623;
+  cursor: pointer;
+  margin-right: 14px;
+  font-size: 13px;
+}
+.op-link:last-child { margin-right: 0; }
+.op-link:hover { text-decoration: underline; }
+.op-link.danger { color: #ff4d4f; }
+
+/* Scrollbar area with horizontal scroll */
+.table-wrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid #eef1f5;
+  border-radius: 4px;
+}
+.table-wrapper::-webkit-scrollbar { height: 10px; }
+.table-wrapper::-webkit-scrollbar-thumb { background: #cfd6df; border-radius: 5px; }
+.table-wrapper::-webkit-scrollbar-thumb:hover { background: #a8b3c0; }
+.table-wrapper::-webkit-scrollbar-track { background: #f5f6f8; }
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 4px 4px;
+  font-size: 13px;
+  color: #4a5568;
+  flex-wrap: wrap;
+}
+.pg-total { margin-right: 4px; color: #4a5568; }
+.pg-size select {
+  height: 30px;
+  padding: 0 26px 0 10px;
+  border: 1px solid #d9dfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  font-size: 13px;
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+.pg-btn {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid #eaedf1;
+  border-radius: 4px;
+  background: #fff;
+  color: #4a5568;
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.pg-btn:hover:not(:disabled) { color: #f5a623; border-color: #f5a623; }
+.pg-btn.active {
+  background: #f5a623;
+  color: #fff;
+  border-color: #f5a623;
+  font-weight: bold;
+  cursor: default;
+}
+.pg-btn:disabled {
+  color: #c8ced5;
+  cursor: not-allowed;
+  background: #fafafa;
+}
+.pg-arrow { padding: 0; }
+.pg-arrow svg { color: currentColor; }
+.pg-ellipsis {
+  min-width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #4a5568;
+  cursor: default;
+  user-select: none;
+}
+.pg-pages {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.pg-goto {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+.pg-goto input {
+  width: 44px;
+  height: 30px;
+  padding: 0 6px;
+  border: 1px solid #d9dfe6;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 13px;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.pg-goto input::-webkit-outer-spin-button,
+.pg-goto input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.pg-goto input:focus { border-color: #f5a623; }
+
+
+/* 安全级别徽章 */
+.sec-badge { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.sec-l1 { background: #7dd8d8; color: #fff; }
+.sec-l2 { background: #8ee600; color: #fff; }
+.sec-l3 { background: #f5a623; color: #fff; }
+.sec-l4 { background: #f07070; color: #fff; }
+
+
+/* 确认弹框 */
+.modal-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.35); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+.modal-overlay .modal-box { background: #fff; border-radius: 8px; padding: 28px 32px 24px; min-width: 380px; box-shadow: 0 4px 24px rgba(0,0,0,0.15); position: relative; }
+.modal-overlay .modal-close { position: absolute; top: 12px; right: 16px; font-size: 18px; color: #999; cursor: pointer; line-height: 1; }
+.modal-overlay .modal-close:hover { color: #333; }
+.modal-overlay .modal-title { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+.modal-overlay .modal-title .warn-icon { width: 22px; height: 22px; background: #f5a623; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: bold; }
+.modal-overlay .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+.modal-overlay .modal-btn { height: 34px; padding: 0 24px; border-radius: 4px; border: 1px solid #d9dfe6; background: #fff; font-size: 14px; cursor: pointer; color: #333; transition: all 0.15s; font-family: inherit; }
+.modal-overlay .modal-btn:hover { border-color: #f5a623; color: #f5a623; }
+.modal-overlay .modal-btn-confirm { background: #f5a623; color: #fff; border-color: #f5a623; }
+.modal-overlay .modal-btn-confirm:hover { background: #d48a10; border-color: #d48a10; }
+
+
+/* ===== Tree Select 树形下拉 ===== */
+.ts-wrap { position: relative; width: 100%; }
+.ts-trigger { display:flex; align-items:center; justify-content:space-between; height:32px; padding:0 10px; border:1px solid #d9dfe6; border-radius:4px; background:#fff; cursor:pointer; font-size:13px; color:#2c3e50; transition:border-color .2s,box-shadow .2s; }
+.ts-trigger:hover { border-color:#f5a623; }
+.ts-trigger.open { border-color:#f5a623; box-shadow:0 0 0 2px rgba(245,166,35,.15); }
+.ts-display { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+.ts-display.placeholder { color:#b8c1cc; }
+.ts-arrow { display:inline-block; width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:5px solid #b8c1cc; transition:transform .2s; margin-left:6px; flex-shrink:0; }
+.ts-trigger.open .ts-arrow { transform:rotate(180deg); }
+.ts-dropdown { position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:1000; background:#fff; border:1px solid #d9dfe6; border-radius:4px; box-shadow:0 4px 16px rgba(0,0,0,.12); max-height:300px; overflow-y:auto; display:none; padding:4px 0; }
+.ts-dropdown.show { display:block; }
+.ts-node { display:flex; align-items:center; padding:5px 12px; cursor:pointer; font-size:13px; color:#333; transition:background .15s; user-select:none; }
+.ts-node:hover { background:#fff8ec; }
+.ts-node .ts-caret { display:inline-block; width:16px; text-align:center; font-size:10px; color:#999; flex-shrink:0; transition:transform .2s; cursor:pointer; }
+.ts-node .ts-caret.open { transform:rotate(90deg); }
+.ts-node .ts-caret.hidden { visibility:hidden; cursor:default; }
+.ts-node .ts-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ts-node .ts-check { width:16px; height:16px; border:1.5px solid #d9dfe6; border-radius:3px; margin-right:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; color:#fff; transition:all .15s; }
+.ts-node.selected > .ts-check { background:#f5a623; border-color:#f5a623; }
+.ts-node.selected > .ts-check::after { content:"✓"; }
+.ts-node.selected > .ts-name { color:#f5a623; font-weight:500; }
+.ts-children .ts-node { padding-left:28px; }
+.ts-children .ts-children .ts-node { padding-left:44px; }
+.ts-children .ts-children .ts-children .ts-node { padding-left:60px; }
+
+/* ===== 筛选清除按钮 ===== */
+.filter-field { position:relative; display:flex; align-items:center; flex:1; gap:4px; }
+.filter-field .filter-input, .filter-field .filter-select, .filter-field .ts-wrap, .filter-field .ms-wrap { flex:1; min-width:0; }
+.filter-clear {
+  display:none; position:absolute; right:28px; top:50%; transform:translateY(-50%);
+  width:18px; height:18px; border-radius:50%; border:none; background:#d9dfe6;
+  color:#fff; font-size:12px; line-height:18px; text-align:center;
+  cursor:pointer; padding:0; z-index:2; transition:background .15s;
+}
+.filter-clear:hover { background:#f5a623; }
+.filter-clear.show { display:flex; align-items:center; justify-content:center; }
+
+/* ===== 查询条件表单（与指标查询页一致：四列标签式；查询/重置同行最右） ===== */
+.std-form{display:grid; grid-template-columns:repeat(4,1fr); gap:12px 14px; margin-bottom:4px;}
+.std-form-item{display:flex; align-items:center; gap:8px; min-width:0;}
+.std-form-label{flex-shrink:0; width:140px; font-size:13px; color:#4b5563; white-space:nowrap; text-align:right;}
+.std-ctrl{
+  flex:1; min-width:0; height:36px;
+  border:1px solid #d7dbe0; border-radius:5px;
+  padding:0 12px; font-size:13px; font-family:inherit;
+  color:#1f2937; background:#fff; outline:none;
+  transition:border-color 0.2s, box-shadow 0.2s;
+}
+.std-ctrl:focus{border-color:#f5a623; box-shadow:0 0 0 3px rgba(245,166,35,0.15);}
+select.std-ctrl{cursor:pointer;}
+input.std-ctrl::placeholder{color:#b6bcc6;}
+.std-form-actions{grid-column:4 / 5; display:flex; justify-content:flex-end; align-items:center; gap:12px;}
+/* ===== 多选下拉（指标口径/更新频次/时间维度/指标属性标签） ===== */
+.std-multiselect{position:relative; flex:1; min-width:0;}
+.std-ms-btn{width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:pointer; text-align:left;}
+.std-ms-btn:disabled{background:#f5f6f8; color:#a6adb8; cursor:not-allowed;}
+.std-ms-btn:disabled .std-tree-chev{color:#c3c9d2;}
+.std-ms-sel{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#1f2937;}
+.std-ms-sel.placeholder{color:#b6bcc6;}
+.std-ms-pop{
+  display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; min-width:200px;
+  max-height:220px; overflow:auto; z-index:80;
+  background:#f7f8fa; border:1px solid #e3e6ea; border-radius:6px;
+  box-shadow:0 10px 28px rgba(15,40,71,.14); padding:6px 0;
+}
+.std-multiselect.show .std-ms-pop{display:block;}
+.std-ms-row{display:flex; align-items:center; gap:8px; padding:7px 12px; cursor:pointer; user-select:none;}
+.std-ms-row:hover{background:#fdf6e7;}
+.std-ms-row .std-tree-cb{width:15px; height:15px; flex-shrink:0; margin:0; accent-color:#f5a623; cursor:pointer;}
+.std-ms-row .std-tree-lb{font-size:13.5px; color:#333c4a;}
+/* ===== 指标主题：树形多选下拉（主题→一级→二级→三级，复选框级联） ===== */
+.std-treeselect{position:relative; flex:1; min-width:0;}
+.std-tree-btn{width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:pointer; text-align:left;}
+.std-tree-sel{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#1f2937;}
+.std-tree-sel.placeholder{color:#b6bcc6;}
+.std-tree-chev{flex-shrink:0; color:#8a94a3; font-size:11px; transition:transform .2s;}
+.std-treeselect.show .std-tree-chev{transform:rotate(180deg);}
+.std-tree-pop{
+  display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; min-width:340px;
+  max-height:312px; overflow:auto; z-index:80;
+  background:#f7f8fa; border:1px solid #e3e6ea; border-radius:6px;
+  box-shadow:0 10px 28px rgba(15,40,71,.14); padding:6px 0;
+}
+.std-treeselect.show .std-tree-pop{display:block;}
+.std-tree-row{display:flex; align-items:center; gap:8px; padding:7px 12px; cursor:pointer; user-select:none;}
+.std-tree-row:hover{background:#fdf6e7;}
+.std-tree-cb{width:15px; height:15px; flex-shrink:0; margin:0; accent-color:#f5a623; cursor:pointer;}
+.std-tree-exp{width:14px; flex-shrink:0; text-align:center; color:#8a94a3; font-size:10px; cursor:pointer;}
+.std-tree-exp.none{cursor:default; visibility:hidden;}
+.std-tree-lb{font-size:13.5px; color:#333c4a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.btn-std{
+  min-width:88px; height:36px; border-radius:5px;
+  font-size:14px; letter-spacing:3px; cursor:pointer; font-family:inherit; transition:all 0.2s;
+}
+.btn-std-search{background:#f5a623; border:1px solid #f5a623; color:#fff;}
+.btn-std-search:hover{background:#d48a10; border-color:#d48a10;}
+.btn-std-reset{background:#fff; border:1px solid #f5a623; color:#f5a623;}
+.btn-std-reset:hover{background:#fff8ec; color:#d48a10; border-color:#d48a10;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="watermark">
+    <div class="watermark-row" style="margin-top:-6px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+    </div>
+    <div class="watermark-row" style="margin-left:120px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+    </div>
+    <div class="watermark-row" style="margin-left:60px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+    </div>
+    <div class="watermark-row" style="margin-left:180px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+    </div>
+  </div>
+
+  <div class="header-left">
+    <div class="logo-block">
+      <img class="logo-img" src=".codepilot-uploads/1784702798492-image.png" alt="华润金融 CR CAPITAL">
+    </div>
+    <div class="divider"></div>
+    <div class="system-title">通用报送管理系统</div>
+  </div>
+
+  <div class="header-nav">
+    <a class="nav-item" href="通用报送管理系统-导航.html">首页</a>
+    <a class="nav-item" href="指标查询.html">指标查询</a>
+    <div class="nav-item active">指标管理</div>
+    <div class="nav-item">报送管理 <span class="arrow">▼</span></div>
+    <div class="nav-item">任务管理</div>
+    <div class="nav-item">模版管理</div>
+    <div class="nav-item">消息管理 <span class="arrow">▼</span></div>
+    <div class="nav-item">系统管理 <span class="arrow">▼</span></div>
+  </div>
+
+  <div class="header-right">
+    <div class="user-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="8" r="4" stroke="#4a5568" stroke-width="1.8"/>
+        <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="#4a5568" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="user-name">金控管理岗</span>
+  </div>
+</div>
+
+<!-- PAGE CONTAINER -->
+<div class="page-container">
+
+  <!-- Filter Panel（查询条件与指标查询页一致） -->
+  <div class="filter-panel">
+    <div class="std-form">
+      <div class="std-form-item"><label class="std-form-label" for="stdKeyword">指标编号/名称：</label><input type="text" class="std-ctrl" id="stdKeyword" placeholder="请输入"></div>
+      <div class="std-form-item"><label class="std-form-label" for="stdThemeTreeBtn">指标主题：</label>
+        <div class="std-treeselect" id="stdThemeTree">
+          <button type="button" class="std-ctrl std-tree-btn" data-action="std-tree-toggle" id="stdThemeTreeBtn" title="按主题自动带出 一级/二级/三级 分类，支持多选">
+            <span class="std-tree-sel" id="stdThemeTreeSel">请选择</span><span class="std-tree-chev">▾</span>
+          </button>
+          <div class="std-tree-pop" id="stdThemeTreePop"></div>
+        </div>
+      </div>
+      <div class="std-form-item"><label class="std-form-label" for="stdBizUnit">业务单元：</label><select class="std-ctrl" id="stdBizUnit" data-std-key="bizUnit"></select></div>
+      <div class="std-form-item"><label class="std-form-label" for="stdMsBtn-caliber">指标口径：</label>
+        <div class="std-multiselect" id="stdMs-caliber">
+          <button type="button" class="std-ctrl std-ms-btn" data-action="std-ms-toggle" data-ms="caliber" id="stdMsBtn-caliber" title="支持多选；选项随业务单元联动">
+            <span class="std-ms-sel placeholder" id="stdMsSel-caliber">请选择</span><span class="std-tree-chev">▾</span>
+          </button>
+          <div class="std-ms-pop" id="stdMsPop-caliber"></div>
+        </div>
+      </div>
+      <div class="std-form-item"><label class="std-form-label" for="stdMsBtn-freq">更新频次：</label>
+        <div class="std-multiselect" id="stdMs-freq">
+          <button type="button" class="std-ctrl std-ms-btn" data-action="std-ms-toggle" data-ms="freq" id="stdMsBtn-freq" title="支持多选">
+            <span class="std-ms-sel placeholder" id="stdMsSel-freq">请选择</span><span class="std-tree-chev">▾</span>
+          </button>
+          <div class="std-ms-pop" id="stdMsPop-freq"></div>
+        </div>
+      </div>
+      <div class="std-form-item"><label class="std-form-label" for="stdMsBtn-timeDim">时间维度：</label>
+        <div class="std-multiselect" id="stdMs-timeDim">
+          <button type="button" class="std-ctrl std-ms-btn" data-action="std-ms-toggle" data-ms="timeDim" id="stdMsBtn-timeDim" title="支持多选">
+            <span class="std-ms-sel placeholder" id="stdMsSel-timeDim">请选择</span><span class="std-tree-chev">▾</span>
+          </button>
+          <div class="std-ms-pop" id="stdMsPop-timeDim"></div>
+        </div>
+      </div>
+      <div class="std-form-item"><label class="std-form-label" for="stdMsBtn-assess">指标属性标签：</label>
+        <div class="std-multiselect" id="stdMs-assess">
+          <button type="button" class="std-ctrl std-ms-btn" data-action="std-ms-toggle" data-ms="assess" id="stdMsBtn-assess" title="支持多选">
+            <span class="std-ms-sel placeholder" id="stdMsSel-assess">请选择</span><span class="std-tree-chev">▾</span>
+          </button>
+          <div class="std-ms-pop" id="stdMsPop-assess"></div>
+        </div>
+      </div>
+      <div class="std-form-actions">
+        <button class="btn-std btn-std-search" data-action="std-search" type="button">查 询</button>
+        <button class="btn-std btn-std-reset" data-action="std-reset" type="button">重 置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Panel -->
+  <div class="table-panel">
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <div class="action-left">
+        <button class="btn btn-primary" onclick="location.href='新增指标标准.html'">新增</button>
+        <button class="btn btn-outline-primary">批量导出</button>
+        <button class="btn btn-outline-primary">批量导入</button>
+        <button class="btn btn-outline-primary">下载模板</button>
+      </div>
+      <div class="action-right">
+        <button class="btn btn-primary" id="batchPublishBtn" onclick="handleBatchPublish()" disabled style="opacity:0.5;cursor:not-allowed">批量发布</button>
+        <button class="btn btn-danger" id="batchOfflineBtn" onclick="handleBatchOffline()" disabled style="opacity:0.5;cursor:not-allowed">批量下线</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" onclick="filterByStatus(null, this)">全部(200)</div>
+      <div class="tab" onclick="filterByStatus('已发布', this)">已发布(80)</div>
+      <div class="tab" onclick="filterByStatus('未发布', this)">未发布(110)</div>
+      <div class="tab" onclick="filterByStatus('已下线', this)">已下线(10)</div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper">
+      <table class="data-table" id="grid">
+        <thead id="grid-head"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="pagination">
+      <div class="pg-total" id="pg-total">共 0 条</div>
+      <div class="pg-size">
+        <select id="pg-size">
+          <option value="10">10条/页</option>
+          <option value="20">20条/页</option>
+          <option value="50">50条/页</option>
+          <option value="100">100条/页</option>
+        </select>
+      </div>
+      <button class="pg-btn pg-arrow" id="pg-prev" title="上一页">
+        <svg viewBox="0 0 16 16" width="12" height="12"><path d="M10 3 L5 8 L10 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="pg-pages" id="pg-pages"></div>
+      <button class="pg-btn pg-arrow" id="pg-next" title="下一页">
+        <svg viewBox="0 0 16 16" width="12" height="12"><path d="M6 3 L11 8 L6 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="pg-goto">
+        <span>前往</span>
+        <input type="number" min="1" id="pg-goto" />
+        <span>页</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Grid data extracted from 华润银行整合版.xlsx (Sheet: 合并版本, header row 2, data rows 3..21) -->
+<script type="application/json" id="grid-data">{"headers":["序号","指标标准编号","指标分组编号","指标主题","一级分类","二级分类","三级分类","指标名称","指标英文名称","指标定义","指标类型","指标口径","指标计算公式","指标单位(金控系统层面展示单位)","业务单元","数据范围","指标属性标签","是否监管指标（相对于金控）","报送监管机构（相对于金控）","更新频次","时间维度","业务属性备注","指标来源业务单元系统名称","指标来源业务单元系统报表","业务单元供数部门","指标责任人","业务单元IT对接人","来源金控系统名称","来源金控报表","是否入数据湖","数据类型","数据格式","值域","计量单位 (数据库存储最小单位)","唯一性识别规则数据湖库名","唯一性识别规则数据湖表名","唯一性识别规则公司code","唯一性识别规则报表code字段","唯一性识别规则时间维度字段","唯一性识别规则统计时间字段","时间类型","取数方式","推送表名","指标来源编号","技术属性备注","指标需求部门","指标需求人","指标管理部门","指标状态","是否共享","创建人","创建日期","更新人","更新日期","发布日期","停用日期","停用原因","最新版本号","安全级别"],"rows":[["1","STR000001","STR_CRA_GROUP_00000001","战略","存贷结构","AUM","--","AUM","待金控补充","个人客户在我行的资产管理规模","基础指标","合并报表口径","个人AUM月日均 = （当月每日个人AUM余额之和）÷ 当月天数","亿元","华润银行","包含个人存款、自营理财、代销理财、基金、资管、信托、保险及其他财富管理产品所产生的月日均。","考核指标","否","不涉及","月度","本月末","暂无","数据中台-自助分析平台-个金管理驾驶舱","首页-个金业务情况日报-指标（资产月日均）","财富客群部","李海萍","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","元","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_001","SRC-STR000001","待金控补充","战略部","蔡舒婧","战略部","未发布","待金控补充","肖战","2026-07-23 08:24:01","--","--","--","--","--","V1.0","L1-一般其他数据"],["2","STR000002","STR_CRA_GROUP_00000002","战略","客群结构","公司客群","--","公司客群","待金控补充","大中有效授信客户为分行辖内管户机构批复敞口金额3000万（不含）以上，且表内外授信业务敞口余额1000万（含）以上的客户。以及中小有效授信客户数为分行辖内管户机构批复敞口金额3000万（含）以下中、小、微型企业，且表内外敞口余额大于等于100万的客户。","派生指标","单体报表口径","等于大中有效授信客户数+中小有效授信客户数","户","华润银行","剔除①贷款品种为垫款、委托企业贷款;②机会型业务;③受宏观环境、风险、政策等因素影响退出产品及客户。","高质量指标","否","不涉及","月度","本月末","暂无","手工统计","手工统计","公司金融部","郭沫含+张厦","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","户","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_002","SRC-STR000002","待金控补充","战略部","蔡舒婧","战略部","已发布","待金控补充","张敏","2026-07-28 14:13:55","--","--","--","--","--","V1.0","L2-一般敏感数据"],["3","STR000003","STR_CRA_GROUP_00000003","战略","资产负债简表","--","--","总资产","待金控补充","商业银行拥有或控制的，预期能带来经济利益的全部资源，其金额等于合并资产负债表中的资产总计项目","基础指标","合并报表口径","资产总计项目","亿元","华润银行","120","考核指标","--","不涉及","月度","本月末","暂无","数据中台","合并资产负债表","计划财务部","滕天瑶","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","元","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_003","SRC-STR000003","待金控补充","战略部","蔡舒婧","战略部","已下线","待金控补充","李华","2026-08-02 11:24:45","--","--","--","--","--","V1.0","L3-重要数据"],["4","STR000004","STR_CRA_GROUP_00000004","战略","损益简表","--","--","营业收入","待金控补充","企业在日常经营活动中形成的、会导致所有者权益增加的、与所有者投入资本无关的经济利益总流入。对金融机构而言，是各项经营业务实现的全部主营业务净收入总和。","基础指标","合并报表口径","合并利润表的营业收入项目本年累计额营业收入=利息净收入+非息净收入","亿元","华润银行","120","高质量指标","--","不涉及","月度","本月末","暂无","数据中台","160","--","滕天瑶","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","元","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_004","SRC-STR000004","待金控补充","战略部","蔡舒婧","战略部","未发布","待金控补充","王芳","2026-07-26 10:39:36","--","--","--","--","--","V1.0","L4-核心数据"],["5","STR000005","STR_CRA_GROUP_00000005","战略","收入结构","条线营收","--","条线营收","待金控补充","企业在日常经营活动中形成的、会导致所有者权益增加的、与所有者投入资本无关的经济利益总流入。对金融机构而言，是各项经营业务实现的全部主营业务净收入总和。","基础指标","单体考核口径","单体利润表的营业收入项目本年累计额营业收入=利息净收入+非息净收入","亿元","华润银行","120","考核指标","--","不涉及","月度","本月末","暂无","数据中台","160","--","滕天瑶","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","元","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_005","SRC-STR000005","待金控补充","战略部","蔡舒婧","战略部","已发布","待金控补充","刘洋","2026-07-27 15:12:57","--","--","--","--","--","V1.0","L1-一般其他数据"],["6","STR000006","STR_CRA_GROUP_00000006","战略","成本结构","公司条线成本","--","公司条线成本","待金控补充","公司业务条线当期全部成本费用合计金额","基础指标","单体考核口径","业务及管理费+风险成本+资本成本","亿元","华润银行","120","高质量指标","--","不涉及","月度","本月末","暂无","数据中台","160","--","易雨辰","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","元","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_006","SRC-STR000006","待金控补充","战略部","蔡舒婧","战略部","已下线","待金控补充","陈静","2026-08-17 15:59:58","--","--","--","--","--","V1.0","L2-一般敏感数据"],["7","STR000007","STR_CRA_GROUP_00000007","战略","关键监测指标","流动性风险","--","流动性风险","待金控补充","商业银行可用的稳定资金与所需的稳定资金的比率。","派生指标","合并报表口径","可用的稳定资金÷所需的稳定资金","%","华润银行","监管合并报表数据（含村镇银行）","考核指标","否","不涉及","季度","本季末","暂无","数据中台","G2502-合并","计划财务部","陈美兰","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","%","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_007","SRC-STR000007","待金控补充","战略部","蔡舒婧","战略部","未发布","待金控补充","杨帆","2026-08-04 12:24:58","--","--","--","--","--","V1.0","L3-重要数据"],["8","STR000008","STR_CRA_GROUP_00000008","战略","关键监测指标","流动性风险","--","流动性风险","待金控补充","商业银行流动性缺口与90天内到期表内外资产的比率。&#10;分子：流动性缺口=90天内累计到期期限缺口+分摊到90天以上的活期存款","派生指标","单体报表口径","流动性缺口÷90天内到期表内外资产","%","华润银行","监管单体报表数据（不含村镇银行）","高质量指标","否","不涉及","季度","本季末","暂无","数据中台","G21-单体","计划财务部","陈美兰","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","%","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_008","SRC-STR000008","待金控补充","战略部","蔡舒婧","战略部","已发布","待金控补充","赵磊","2026-08-06 10:39:37","--","--","--","--","--","V1.0","L4-核心数据"],["9","STR000009","STR_CRA_GROUP_00000009","战略","利率结构","资产","--","资产","待金控补充","全行对公、个人等客户贷款利息收入，对应贷款日均余额的占比，反映整体信贷放贷收益水平","基础指标","单体报表口径","贷款对客收益率=贷款利息收入/贷款年日均/实际天数*360","%","华润银行","120","考核指标","--","不涉及","月度","本月末","暂无","数据中台","累计息差表","计划财务部","邵淑芬","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","%","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_009","SRC-STR000009","待金控补充","战略部","蔡舒婧","战略部","已下线","待金控补充","周婷","2026-08-16 13:53:02","--","--","--","--","--","V1.0","L1-一般其他数据"],["10","STR000010","STR_CRA_GROUP_00000010","战略","利率结构","负债","--","负债","待金控补充","统计期内付息负债产生的利息支出，与付息负债日均余额的比值，反映银行负债端资金成本水平。","基础指标","单体报表口径","付息负债付息率=利息支出/付息负债年日均/实际天数*360","%","华润银行","120","高质量指标","--","不涉及","月度","本月末","暂无","数据中台","累计息差表","计划财务部","邵淑芬","潘虹宇","不涉及","不涉及","是","待银行补充","待银行补充","待银行补充","%","待金控补充","待金控补充","crb","不涉及","待金控补充","待金控补充","待银行补充","FTP文件传输","ADS_PUSH_STR_010","SRC-STR000010","待金控补充","战略部","蔡舒婧","战略部","未发布","待金控补充","吴强","2026-09-06 17:29:09","--","--","--","--","--","V1.0","L2-一般敏感数据"],["11","RS000001","RS_CRA_GROUP_00000001","风险","风险偏好指标","市场风险","--","市场风险","--","--","风偏指令性指标","-","交易账户本币债券投资总头寸","亿元","华润银行","--","考核指标","--","--","--","本季末","--","--","--","--","--","--","--","风险集中度","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_001","SRC-RS000001","--","--","--","--","已发布","--","孙丽","2026-09-01 10:41:36","--","--","--","--","--","V1.0","L3-重要数据"],["12","RS000002","RS_CRA_GROUP_00000002","风险","问题资产指标","不良类","不良资产规模","不良资产总额","--","--","--","--","--","--","华润银行","--","高质量指标","--","--","--","本月末","--","--","--","--","--","--","--","手工数据","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_002","SRC-RS000002","--","--","--","--","已下线","--","郑浩","2026-08-25 17:07:40","--","--","--","--","--","V1.0","L4-核心数据"],["13","RS000003","RS_CRA_GROUP_00000003","风险","问题资产指标","关注类","关注资产规模","关注资产率","186","--","--","--","--","--","华润银行","--","考核指标","--","--","--","本月末","--","--","--","--","--","--","--","手工数据","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_003","SRC-RS000003","--","--","--","--","未发布","--","黄梅","2026-09-09 14:45:51","--","--","--","--","--","V1.0","L1-一般其他数据"],["14","RS000004","RS_CRA_GROUP_00000004","风险","问题资产指标","关注类","关注资产规模","关注类资产总额","--","--","--","--","--","--","华润银行","--","高质量指标","--","--","--","本月末","--","--","--","--","--","--","--","手工数据","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_004","SRC-RS000004","--","--","--","--","已发布","--","林峰","2026-08-18 12:39:45","--","--","--","--","--","V1.0","L2-一般敏感数据"],["15","RS000005","RS_CRA_GROUP_00000005","风险","问题资产指标","问题资产类","问题资产规模","问题资产总规模","--","--","--","--","--","--","华润银行","--","考核指标","--","--","--","本月末","--","--","--","--","--","--","--","ADS-问题资产关键指标","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_005","SRC-RS000005","--","--","--","--","已下线","--","徐雪","2026-09-17 09:43:04","--","--","--","--","--","V1.0","L3-重要数据"],["16","RS000006","RS_CRA_GROUP_00000006","风险","问题资产指标","正常但预警类","正常但预警资产规模","正常但预警资产总额","--","--","--","--","--","--","华润银行","--","高质量指标","--","--","--","本月末","--","--","--","--","--","--","--","手工数据","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_006","SRC-RS000006","--","--","--","--","未发布","--","肖战","2026-09-06 16:54:20","--","--","--","--","--","V1.0","L4-核心数据"],["17","RS000007","RS_CRA_GROUP_00000007","风险","问题资产指标","其他关键指标","--","其他关键指标","--","--","--","--","--","--","华润银行","--","考核指标","--","--","--","本月末","--","--","--","--","--","--","--","手工数据","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_007","SRC-RS000007","--","--","--","--","已发布","--","张敏","2026-10-11 15:33:52","--","--","--","--","--","V1.0","L1-一般其他数据"],["18","RS000008","RS_CRA_GROUP_00000008","风险","贷款五级分类表","--","--","--","--","--","基础指标","--","--","--","华润银行","贷款五级分类余额同《表G12贷款质量迁徙情况表》中贷款质量迁徙情况一致","高质量指标","--","--","--","本月末","全行整体数据","--","--","--","钟雯雅","--","--","--","是","--","--","--","--","--","--","--","--","--","--","--","--","ADS_PUSH_RS0_008","SRC-RS000008","--","--","--","--","已下线","--","李华","2026-09-12 11:43:39","--","--","--","--","--","V1.0","L2-一般敏感数据"]]}</script>
+
+<script>
+const GRID = JSON.parse(document.getElementById('grid-data').textContent);
+
+// Status column index (指标状态)
+const STATUS_COL = GRID.headers.findIndex(h => h.includes('指标状态'));
+const CODE_COL = GRID.headers.findIndex(h => h.includes('指标标准编号'));
+const NO_COL = GRID.headers.findIndex(h => h === '序号');
+const VER_COL = GRID.headers.findIndex(h => h.includes('最新版本号'));
+const SEC_COL = GRID.headers.findIndex(h => h.includes('安全级别'));
+
+// Build display order: 列表仅展示以下字段（固定顺序），其余字段仍保留在数据中，详情/编辑页可见
+const LIST_COLS = ['序号','指标标准编号','业务单元','指标名称','指标主题','一级分类','二级分类','指标定义','时间维度','指标类型','指标口径','指标单位','更新频次','业务单元供数部门','指标责任人','指标需求人','指标管理部门','最新版本号','安全级别'];
+const stripParen = (h) => h.replace(/[(（][^）)]*[）)]/g, '').trim();
+const DISPLAY_ORDER = LIST_COLS
+  .map(n => GRID.headers.findIndex(h => stripParen(h) === n))
+  .filter(i => i >= 0);
+
+const statusStyle = (v) => {
+  if (!v) return { text: '-', cls: 'status-off' };
+  if (v.includes('未')) return { text: '未发布', cls: 'status-unpub' };
+  if (v.includes('下线')) return { text: '已下线', cls: 'status-off' };
+  return { text: '已发布', cls: 'status-pub' };
+};
+
+function ops(status) {
+  const s = (status || '').toString();
+  if (s.includes('未')) {
+    return '<span class="op-link" onclick="goEdit(this)">编辑</span><span class="op-link" onclick="showConfirm(\'确定发布该指标？\', function(){ alert(\'发布成功\'); })">发布</span><span class="op-link danger" onclick="handleDelete(this)">删除</span>';
+  }
+  if (s.includes('下线')) {
+    return '<span class="op-link">发布</span><span class="op-link danger" onclick="handleDelete(this)">删除</span>';
+  }
+  if (s) {
+    return '<span class="op-link" onclick="goEdit(this)">编辑</span><span class="op-link" onclick="handleOffline(this)">下线</span>';
+  }
+  return '<span class="op-link" onclick="goEdit(this)">编辑</span><span class="op-link danger" onclick="handleDelete(this)">删除</span>';
+}
+
+// Build header
+const headHtml = [];
+headHtml.push('<tr>');
+headHtml.push('<th class="sticky-col sticky-col-0"><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>');
+DISPLAY_ORDER.forEach((origI, dispI) => {
+  const h = GRID.headers[origI].replace(/[(（][^）)]*[）)]/g, '').trim();
+  let cls = '';
+  if (origI === NO_COL) cls = 'sticky-col sticky-col-1';
+  else if (origI === CODE_COL) cls = 'sticky-col sticky-col-2';
+  else if (dispI === DISPLAY_ORDER.length - 2) cls = 'sticky-right sticky-right-2';
+  else if (dispI === DISPLAY_ORDER.length - 1) cls = 'sticky-right sticky-right-1';
+  headHtml.push(`<th${cls ? ' class="'+cls+'"' : ''}>${h}</th>`);
+});
+headHtml.push('<th class="sticky-op">操作</th>');
+headHtml.push('</tr>');
+document.getElementById('grid-head').innerHTML = headHtml.join('');
+
+// Build body — paged
+function renderBody(pageRows) {
+  const bodyHtml = pageRows.map((row, rowIndex) => {
+    const cells = [];
+    cells.push('<td class="sticky-col sticky-col-0"><input type="checkbox" class="row-check" data-idx="'+(currentPageStart + rowIndex)+'" onclick="onCheck()"></td>');
+    DISPLAY_ORDER.forEach((origI, dispI) => {
+      const v = row[origI];
+      let content = (v === '' || v == null) ? '-' : v;
+      let cls = '';
+      if (origI === NO_COL) cls = 'sticky-col sticky-col-1';
+      else if (origI === CODE_COL) {
+        cls = 'sticky-col sticky-col-2';
+        if (content !== '-') content = `<span class="code-link" onclick="goDetail('${v}')">${content}</span>`;
+      } else {
+        if (dispI === DISPLAY_ORDER.length - 2) cls = 'sticky-right sticky-right-2';
+        else if (dispI === DISPLAY_ORDER.length - 1) cls = 'sticky-right sticky-right-1';
+        if (origI === STATUS_COL) {
+          const s = statusStyle(v);
+          content = `<span class="status ${s.cls}">${s.text}</span>`;
+        }
+      if (origI === SEC_COL) {
+        var secVal = (row[origI] || '').toString();
+        if (secVal.indexOf('L1') === 0) content = '<span class="sec-badge sec-l1">'+secVal+'</span>';
+        else if (secVal.indexOf('L2') === 0) content = '<span class="sec-badge sec-l2">'+secVal+'</span>';
+        else if (secVal.indexOf('L3') === 0) content = '<span class="sec-badge sec-l3">'+secVal+'</span>';
+        else if (secVal.indexOf('L4') === 0) content = '<span class="sec-badge sec-l4">'+secVal+'</span>';
+      }
+      }
+      const title = String(v || '').length > 40 ? ` title="${String(v).replace(/"/g,'&quot;')}"` : '';
+      cells.push(`<td${cls ? ' class="'+cls+'"' : ''}${title}>${content}</td>`);
+    });
+    const statusVal = row[STATUS_COL];
+    cells.push(`<td class="sticky-op">${ops(statusVal)}</td>`);
+    return `<tr>${cells.join('')}</tr>`;
+  }).join('');
+  document.getElementById('tbody').innerHTML = bodyHtml;
+}
+
+/* ========== Pagination ========== */
+// Simulate a larger dataset (71 records like in the mockup) by replicating existing rows,
+// so pagination behavior is fully observable.
+const SIMULATED_TOTAL = 71;
+const paginatedData = [];
+for (let i = 0; i < SIMULATED_TOTAL; i++) {
+  const src = GRID.rows[i % GRID.rows.length].slice();
+  src[NO_COL] = String(i + 1);
+  paginatedData.push(src);
+}
+
+let currentPage = 1;
+let statusFilter = null; // null=all, "已发布", "未发布", "已下线"
+let pageSize = 10;
+
+function renderPage() {
+  currentPageStart = (currentPage - 1) * pageSize;
+  var baseRows = filteredRows || GRID.rows;
+  var sourceRows = statusFilter ? baseRows.filter(function(r){return r[STATUS_COL]===statusFilter;}) : baseRows;
+  const total = sourceRows.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+
+  const start = (currentPage - 1) * pageSize;
+  const pageRows = sourceRows.slice(start, start + pageSize);
+  renderBody(pageRows);
+  updateBatchButtons();
+
+  document.getElementById('pg-total').textContent = `共 ${total} 条`;
+
+  // Build page buttons: always show 1, last, and neighborhood around current
+  const pagesEl = document.getElementById('pg-pages');
+  pagesEl.innerHTML = '';
+  const addBtn = (label, page, opts = {}) => {
+    const b = document.createElement('button');
+    b.className = 'pg-btn' + (opts.active ? ' active' : '');
+    b.textContent = label;
+    if (!opts.active && page) {
+      b.addEventListener('click', () => { currentPage = page; renderPage(); });
+    }
+    pagesEl.appendChild(b);
+  };
+  const addEllipsis = () => {
+    const s = document.createElement('span');
+    s.className = 'pg-ellipsis';
+    s.textContent = '···';
+    pagesEl.appendChild(s);
+  };
+
+  const range = [];
+  const window = 1; // neighbors around current
+  for (let p = 1; p <= totalPages; p++) {
+    if (p === 1 || p === totalPages || (p >= currentPage - window && p <= currentPage + window)) {
+      range.push(p);
+    }
+  }
+  let last = 0;
+  range.forEach(p => {
+    if (last && p - last > 1) addEllipsis();
+    addBtn(String(p), p, { active: p === currentPage });
+    last = p;
+  });
+
+  document.getElementById('pg-prev').disabled = currentPage <= 1;
+  document.getElementById('pg-next').disabled = currentPage >= totalPages;
+  document.getElementById('pg-goto').max = totalPages;
+}
+
+document.getElementById('pg-size').addEventListener('change', e => {
+  pageSize = parseInt(e.target.value, 10) || 10;
+  currentPage = 1;
+  renderPage();
+});
+document.getElementById('pg-prev').addEventListener('click', () => {
+  if (currentPage > 1) { currentPage--; renderPage(); }
+});
+document.getElementById('pg-next').addEventListener('click', () => {
+  currentPage++; renderPage();
+});
+document.getElementById('pg-goto').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const v = parseInt(e.target.value, 10);
+    if (v > 0) { currentPage = v; renderPage(); }
+    e.target.value = '';
+  }
+});
+
+renderPage();
+
+// Update tab counts based on real data
+function updateTabCounts() {
+  var tabs = document.querySelectorAll(".tab");
+  var baseRows = filteredRows || GRID.rows;
+  var total = baseRows.length;
+  var pub = 0, unpub = 0, off = 0;
+  baseRows.forEach(function(r) {
+    var v = (r[STATUS_COL] || "").toString();
+    if (v.indexOf("未") >= 0) unpub++;
+    else if (v.indexOf("下线") >= 0) off++;
+    else if (v) pub++;
+  });
+  if (tabs.length >= 4) {
+    tabs[0].textContent = "全部(" + total + ")";
+    tabs[1].textContent = "已发布(" + pub + ")";
+    tabs[2].textContent = "未发布(" + unpub + ")";
+    tabs[3].textContent = "已下线(" + off + ")";
+  }
+}
+
+function goDetail(code) {
+  if (!code) return;
+  window.location.href = '指标详情.html?code=' + encodeURIComponent(code);
+}
+
+// 点击「编辑」→ 取出当前行的完整数据，按「列名:值」存入 sessionStorage，跳转到编辑页自动回填
+function goEdit(el) {
+  var tr = el.closest('tr');
+  if (!tr) return;
+  var rowIndex = Array.from(tr.parentNode.children).indexOf(tr);
+  // 用与 renderPage 完全一致的方式还原当前页的数据源，确保拿到正确的那一行
+  var baseRows = filteredRows || GRID.rows;
+  var sourceRows = statusFilter ? baseRows.filter(function(r){ return r[STATUS_COL] === statusFilter; }) : baseRows;
+  var start = (currentPage - 1) * pageSize;
+  var row = sourceRows[start + rowIndex];
+  if (!row) return;
+  // 按「列名 → 值」打包整行（含全部 55 个字段），编辑页据此回填
+  var record = {};
+  GRID.headers.forEach(function(h, i) { record[h] = row[i]; });
+  try {
+    sessionStorage.setItem('editIndicator', JSON.stringify(record));
+  } catch (e) {}
+  window.location.href = '新增指标标准.html?mode=edit';
+}
+
+function showConfirm(msg, callback) {
+  var modal = document.getElementById("confirmModal");
+  document.getElementById("confirmMsg").textContent = msg;
+  var btn = document.getElementById("confirmBtn");
+  btn.onclick = function() {
+    modal.style.display = "none";
+    if (callback) callback();
+  };
+  modal.style.display = "flex";
+}
+
+function handlePublish(el) {
+  var td = el.closest("tr");
+  var rowIndex = Array.from(td.parentNode.children).indexOf(td);
+  showConfirm("确定发布该指标？", function() {
+    // Update data
+    GRID.rows[rowIndex][STATUS_COL] = "已发布";
+    GRID.rows[rowIndex][VER_COL] = "V1.0";
+    // Re-render
+    renderPage();
+    updateTabCounts();
+  });
+}
+
+function handleDelete(el) {
+  var td = el.closest("tr");
+  var rowIndex = Array.from(td.parentNode.children).indexOf(td);
+  showConfirm("确定删除？", function() {
+    // Remove row from data
+    GRID.rows.splice(rowIndex, 1);
+    // Re-number 序号
+    GRID.rows.forEach(function(r, i) { r[0] = String(i + 1); });
+    // Re-render
+    renderPage();
+    updateTabCounts();
+  });
+}
+
+var currentPageStart = 0;
+function toggleAll(el) {
+  var checks = document.querySelectorAll(".row-check");
+  checks.forEach(function(cb) { cb.checked = el.checked; });
+  updateBatchButtons();
+}
+function onCheck() {
+  var checks = document.querySelectorAll(".row-check");
+  var allChecked = Array.from(checks).every(function(cb) { return cb.checked; });
+  document.getElementById("checkAll").checked = allChecked;
+  updateBatchButtons();
+}
+function updateBatchButtons() {
+  var checks = document.querySelectorAll(".row-check:checked");
+  var publishBtn = document.querySelector('[onclick="handleBatchPublish()"]') || document.getElementById("batchPublishBtn");
+  var offlineBtn = document.querySelector('[onclick="handleBatchOffline()"]') || document.getElementById("batchOfflineBtn");
+  if (!publishBtn || !offlineBtn) return;
+  
+  if (checks.length === 0) {
+    publishBtn.disabled = true;
+    publishBtn.style.opacity = "0.5";
+    publishBtn.style.cursor = "not-allowed";
+    offlineBtn.disabled = true;
+    offlineBtn.style.opacity = "0.5";
+    offlineBtn.style.cursor = "not-allowed";
+    return;
+  }
+  
+  var allUnpub = true, allPub = true;
+  checks.forEach(function(cb) {
+    var idx = parseInt(cb.dataset.idx);
+    var status = GRID.rows[idx][STATUS_COL];
+    if (status !== "未发布") allUnpub = false;
+    if (status !== "已发布") allPub = false;
+  });
+  
+  publishBtn.disabled = !allUnpub;
+  publishBtn.style.opacity = allUnpub ? "1" : "0.5";
+  publishBtn.style.cursor = allUnpub ? "pointer" : "not-allowed";
+  offlineBtn.disabled = !allPub;
+  offlineBtn.style.opacity = allPub ? "1" : "0.5";
+  offlineBtn.style.cursor = allPub ? "pointer" : "not-allowed";
+}
+function handleBatchPublish() {
+  var checks = document.querySelectorAll(".row-check:checked");
+  if (checks.length === 0) return;
+
+  document.getElementById("batchPublishCount").textContent = checks.length;
+
+  var modal = document.getElementById("batchPublishModal");
+  var btn = document.getElementById("batchPublishConfirmBtn");
+  btn.onclick = function() {
+    checks.forEach(function(cb) {
+      var idx = parseInt(cb.dataset.idx);
+      GRID.rows[idx][STATUS_COL] = "已发布";
+    });
+    modal.style.display = "none";
+    renderPage();
+    updateTabCounts();
+  };
+  modal.style.display = "flex";
+}
+function handleBatchOffline() {
+  var checks = document.querySelectorAll(".row-check:checked");
+  if (checks.length === 0) return;
+
+  document.getElementById("batchOfflineCount").textContent = checks.length;
+  document.getElementById("batchOfflineReason").value = "";
+  document.getElementById("batchCharCount").textContent = "0/500";
+  document.getElementById("batchCharCount").style.color = "#999";
+
+  var modal = document.getElementById("batchOfflineModal");
+  var btn = document.getElementById("batchOfflineConfirmBtn");
+  btn.onclick = function() {
+    var reason = document.getElementById("batchOfflineReason").value.trim();
+    if (!reason) {
+      document.getElementById("batchOfflineReason").style.borderColor = "#ff4d4f";
+      document.getElementById("batchOfflineReason").focus();
+      return;
+    }
+    checks.forEach(function(cb) {
+      var idx = parseInt(cb.dataset.idx);
+      var row = GRID.rows[idx];
+      row[STATUS_COL] = "已下线";
+      var reasonCol = GRID.headers.findIndex(function(h){return h.indexOf("停用原因")>=0;});
+      if (reasonCol >= 0) row[reasonCol] = reason;
+    });
+    modal.style.display = "none";
+    renderPage();
+    updateTabCounts();
+  };
+  modal.style.display = "flex";
+}
+
+// ===== 查询条件（与指标查询页一致）：关键字 / 主题树多选 / 业务单元 / 口径(联动) / 更新频次 / 时间维度 / 指标属性标签 =====
+function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+const stdState = { kw:'', bizUnit:'', caliber:[], freq:[], timeDim:[], assess:[] };
+
+// 查询条件枚举值（与指标查询页一致）
+const STD_ENUM = {
+  bizUnit: ['华润金融','华润银行','华润信托','华润租赁','华润保险','华润资产','华润深国投'],
+  freq: ['日度','月度','季度','半年度','年度'],
+  timeDim: ['本日数','本日末','本月数','本月末','本季数','本季末','本年度','本年累计数'],
+  assess: ['考核指标','高质量指标']
+};
+/* 指标属性标签：查询枚举 → 匹配集合（兼容数据源原始枚举「仅考核指标/两者都是」与展示值「考核指标」） */
+const STD_ASSESS_MAP = {
+  '考核指标': ['仅考核指标','两者都是','考核指标'],
+  '高质量指标': ['仅高质量指标','两者都是','高质量指标']
+};
+/* 业务单元 → 指标口径 关联枚举（与指标查询页一致：选定业务单元后方可选择口径） */
+const STD_BIZ_CALIBER = {
+  '华润金融': ['合并报表口径'],
+  '华润银行': ['单体考核口径','单体报表口径','合并报表口径'],
+  '华润信托': ['财务考核口径','混合口径','信托单体口径','信托计划口径'],
+  '华润租赁': [],
+  '华润保险': ['考核口径'],
+  '华润资产': ['财务考核口径','渝康单体口径','资产单体口径','资产本部及渝康合并口径','资产本部口径','资产香港(含深圳)口径'],
+  '华润深国投': ['深国投单体口径']
+};
+
+// 查询条件涉及的列索引（基于 GRID.headers）
+const SC = {
+  code: GRID.headers.findIndex(h=>h.indexOf('指标标准编号')>=0),
+  name: GRID.headers.findIndex(h=>h==='指标名称'),
+  theme: GRID.headers.findIndex(h=>h==='指标主题'),
+  l1: GRID.headers.findIndex(h=>h==='一级分类'),
+  l2: GRID.headers.findIndex(h=>h==='二级分类'),
+  l3: GRID.headers.findIndex(h=>h==='三级分类'),
+  biz: GRID.headers.findIndex(h=>h==='业务单元'),
+  caliber: GRID.headers.findIndex(h=>h==='指标口径'),
+  freq: GRID.headers.findIndex(h=>h==='更新频次'),
+  timeDim: GRID.headers.findIndex(h=>h==='时间维度'),
+  assess: GRID.headers.findIndex(h=>h==='指标属性标签')
+};
+function cell(row, idx){ return String(idx<0 || row[idx]==null ? '' : row[idx]).trim(); }
+// 判断字段值是否为空/未提供（待补充、不涉及、暂无、-）
+function stdIsEmpty(v){
+  const s = String(v==null?'':v).trim();
+  if(!s) return true;
+  if(/^(-|—|暂无|无|不涉及)$/.test(s)) return true;
+  if(/^待[一-龥]{0,8}补充$/.test(s)) return true;
+  return false;
+}
+
+/* ===== 指标主题树形多选（主题→一级→二级→三级；复选框级联；items 存行引用，删除行后筛选依旧有效） ===== */
+let stdTreeRoots = [];
+const stdTreeMap = {};
+const stdRowLeaf = new Map();     // 数据行 → 该行在树上的最深分类节点 id
+const stdLeafChecked = new Set(); // 已勾选的叶子 id
+let stdTreeOpen = new Set();      // 已展开节点 id
+let stdSelRowsCache = null;       // 选中叶子覆盖的数据行缓存
+function stdBuildThemeTree(){
+  stdTreeRoots = [];
+  Object.keys(stdTreeMap).forEach(k=>delete stdTreeMap[k]);
+  stdRowLeaf.clear();
+  GRID.rows.forEach(function(row){
+    const path = [cell(row,SC.theme), cell(row,SC.l1), cell(row,SC.l2), cell(row,SC.l3)]
+      .filter(function(v){ return v && !stdIsEmpty(v); });
+    if(!path.length) return;
+    let list = stdTreeRoots, acc = '';
+    path.forEach(function(seg){
+      acc = acc ? acc + '/' + seg : seg;
+      if(!stdTreeMap[acc]){
+        const node = { id:acc, label:seg, children:[], leaves:[], items:[] };
+        stdTreeMap[acc] = node;
+        list.push(node);
+      }
+      const node = stdTreeMap[acc];
+      node.items.push(row);
+      list = node.children;
+    });
+    stdTreeMap[acc].leaves.push(acc); // 最深节点记为叶子（自身）
+    stdRowLeaf.set(row, acc);
+  });
+  // 自底向上汇总每个节点下的全部叶子
+  const collect = n => { n.children.forEach(c=>{ collect(c); c.leaves.forEach(l=>{ if(n.leaves.indexOf(l)<0) n.leaves.push(l); }); }); };
+  stdTreeRoots.forEach(collect);
+  stdTreeOpen = new Set(stdTreeRoots.map(n=>n.id)); // 默认展开主题层
+}
+function stdNodeState(node){
+  let c = 0;
+  node.leaves.forEach(l=>{ if(stdLeafChecked.has(l)) c++; });
+  return { checked: c>0 && c===node.leaves.length, indet: c>0 && c<node.leaves.length };
+}
+function stdTreePopHtml(){
+  const walk = (n, depth)=>{
+    const st = stdNodeState(n);
+    const kids = n.children.length;
+    const open = stdTreeOpen.has(n.id);
+    let h = '<div class="std-tree-row" style="padding-left:' + (10 + depth*22) + 'px">'
+      + '<input type="checkbox" class="std-tree-cb" data-action="std-tree-check" data-node="' + escHtml(n.id) + '"' + (st.checked?' checked':'') + '>'
+      + '<span class="std-tree-exp' + (kids?'':' none') + '" data-action="std-tree-open" data-node="' + escHtml(n.id) + '">' + (kids ? (open?'▼':'▶') : '') + '</span>'
+      + '<span class="std-tree-lb" data-action="std-tree-flip" data-node="' + escHtml(n.id) + '" title="' + escHtml(n.label) + '">' + escHtml(n.label) + '</span>'
+      + '</div>';
+    if(kids && open) h += n.children.map(c=>walk(c, depth+1)).join('');
+    return h;
+  };
+  return stdTreeRoots.map(n=>walk(n,0)).join('') || '<div class="std-tree-row">暂无分类数据</div>';
+}
+function stdRenderTreePop(){
+  const pop = document.getElementById('stdThemeTreePop');
+  if(!pop) return;
+  pop.innerHTML = stdTreePopHtml();
+  // 半选态（部分子叶子勾选）
+  pop.querySelectorAll('input.std-tree-cb').forEach(cb=>{
+    const n = stdTreeMap[cb.dataset.node];
+    cb.indeterminate = n ? stdNodeState(n).indet : false;
+  });
+}
+function stdTreeSelRows(){
+  if(stdSelRowsCache) return stdSelRowsCache;
+  const s = new Set();
+  stdLeafChecked.forEach(l=>{
+    const n = stdTreeMap[l];
+    if(n) n.items.forEach(r=>s.add(r));
+  });
+  stdSelRowsCache = s;
+  return s;
+}
+function stdTreeApplySel(){
+  stdSelRowsCache = null;
+  stdRenderTreePop();
+  const sel = document.getElementById('stdThemeTreeSel');
+  if(sel){
+    const n = stdLeafChecked.size;
+    sel.textContent = n ? ('已选 ' + n + ' 项分类') : '请选择';
+    sel.className = 'std-tree-sel' + (n ? '' : ' placeholder');
+  }
+  applyMgmt();
+}
+function stdSetNodeChecked(id, on){
+  const n = stdTreeMap[id];
+  if(!n) return;
+  n.leaves.forEach(l=>{ on ? stdLeafChecked.add(l) : stdLeafChecked.delete(l); });
+  stdTreeApplySel();
+}
+
+/* ===== 通用多选下拉（指标口径/更新频次/时间维度/指标属性标签） ===== */
+const STD_MS_KEYS = ['caliber','freq','timeDim','assess'];
+function stdMsOptions(key){
+  if(key==='caliber'){
+    /* 联动：仅返回所选业务单元关联的口径；未选单元时无可选项 */
+    return stdState.bizUnit ? (STD_BIZ_CALIBER[stdState.bizUnit] || []) : [];
+  }
+  return STD_ENUM[key] || [];
+}
+function stdRenderMsPop(key){
+  const pop = document.getElementById('stdMsPop-' + key);
+  if(!pop) return;
+  const arr = stdState[key];
+  pop.innerHTML = stdMsOptions(key).map(v=>{
+    const on = arr.indexOf(v) >= 0;
+    return '<div class="std-ms-row"><input type="checkbox" class="std-tree-cb" data-action="std-ms-check" data-ms="' + key + '" data-val="' + escHtml(v) + '"' + (on?' checked':'') + '>'
+      + '<span class="std-tree-lb" data-action="std-ms-flip" data-ms="' + key + '" data-val="' + escHtml(v) + '">' + escHtml(v) + '</span></div>';
+  }).join('') || '<div class="std-ms-row">暂无可选项</div>';
+}
+function stdMsLabel(key){
+  const sel = document.getElementById('stdMsSel-' + key);
+  if(!sel) return;
+  const n = stdState[key].length;
+  sel.textContent = n ? ('已选 ' + n + ' 项') : '请选择';
+  sel.className = 'std-ms-sel' + (n ? '' : ' placeholder');
+}
+function stdToggleMs(key, v, on){
+  const arr = stdState[key];
+  const i = arr.indexOf(v);
+  if(on && i < 0) arr.push(v);
+  if(!on && i >= 0) arr.splice(i, 1);
+  stdRenderMsPop(key);
+  stdMsLabel(key);
+  applyMgmt();
+}
+function stdResetMs(key){
+  stdState[key] = [];
+  stdRenderMsPop(key);
+  stdMsLabel(key);
+}
+function stdFillSelect(id, values){
+  const sel = document.getElementById(id);
+  if(!sel) return;
+  sel.innerHTML = '<option value="">请选择</option>' +
+    values.map(v=>'<option value="' + escHtml(v) + '">' + escHtml(v) + '</option>').join('');
+}
+// 指标口径组合框随业务单元联动：未选业务单元时禁用，选定后仅展示关联口径
+function stdUpdateCaliberCombo(){
+  stdState.caliber = [];
+  const btn = document.getElementById('stdMsBtn-caliber');
+  if(btn){
+    btn.disabled = !stdState.bizUnit;
+    btn.title = stdState.bizUnit ? '支持多选；选项随业务单元联动' : '请先选择业务单元';
+  }
+  stdRenderMsPop('caliber');
+  if(stdState.bizUnit){
+    stdMsLabel('caliber');
+  }else{
+    const sel = document.getElementById('stdMsSel-caliber');
+    if(sel){ sel.textContent = '请先选择业务单元'; sel.className = 'std-ms-sel placeholder'; }
+  }
+}
+
+/* ===== 筛选与查询 ===== */
+function stdFiltered(){
+  const kw = stdState.kw.trim().toLowerCase();
+  const selRows = stdLeafChecked.size ? stdTreeSelRows() : null;
+  return GRID.rows.filter(function(row){
+    if(selRows && !selRows.has(row)) return false;
+    if(stdState.bizUnit && cell(row,SC.biz) !== stdState.bizUnit) return false;
+    if(stdState.freq.length && stdState.freq.indexOf(cell(row,SC.freq)) < 0) return false;
+    if(stdState.timeDim.length && stdState.timeDim.indexOf(cell(row,SC.timeDim)) < 0) return false;
+    if(stdState.assess.length){
+      const av = cell(row,SC.assess);
+      if(!stdState.assess.some(k=>(STD_ASSESS_MAP[k]||[k]).indexOf(av)>=0)) return false;
+    }
+    if(stdState.caliber.length && stdState.caliber.indexOf(cell(row,SC.caliber)) < 0) return false;
+    /* 编号/名称合并搜索：任一命中即保留 */
+    if(kw && cell(row,SC.code).toLowerCase().indexOf(kw) < 0
+        && cell(row,SC.name).toLowerCase().indexOf(kw) < 0) return false;
+    return true;
+  });
+}
+
+var filteredRows = null;
+function applyMgmt(){
+  filteredRows = stdFiltered();
+  currentPage = 1;
+  renderPage();
+  updateTabCounts();
+}
+function resetStdFilters(){
+  stdState.kw=''; stdState.bizUnit='';
+  document.getElementById('stdKeyword').value = '';
+  const buEl = document.getElementById('stdBizUnit');
+  if(buEl) buEl.value = '';
+  stdLeafChecked.clear();
+  stdSelRowsCache = null;
+  stdRenderTreePop();
+  STD_MS_KEYS.forEach(stdResetMs);
+  const sel = document.getElementById('stdThemeTreeSel');
+  if(sel){ sel.textContent = '请选择'; sel.className = 'std-tree-sel placeholder'; }
+  stdUpdateCaliberCombo();
+  applyMgmt();
+}
+
+/* ===== 事件绑定（与指标查询页交互一致：树/多选弹层、点击外部收起、条件变更即时查询） ===== */
+document.addEventListener('click', function(e){
+  const treeWrap = document.getElementById('stdThemeTree');
+  if(treeWrap && treeWrap.classList.contains('show') && !e.target.closest('.std-treeselect')) treeWrap.classList.remove('show');
+  STD_MS_KEYS.forEach(function(k){
+    const w = document.getElementById('stdMs-' + k);
+    if(w && w.classList.contains('show') && !(e.target.closest && e.target.closest('#stdMs-' + k))) w.classList.remove('show');
+  });
+  const btn = e.target.closest('[data-action]');
+  if(!btn) return;
+  const action = btn.dataset.action;
+  if(action === 'std-tree-toggle'){
+    const wrap = document.getElementById('stdThemeTree');
+    if(wrap){ if(!wrap.classList.contains('show')) stdRenderTreePop(); wrap.classList.toggle('show'); }
+  }
+  else if(action === 'std-tree-open'){
+    const tid = btn.dataset.node;
+    if(stdTreeOpen.has(tid)) stdTreeOpen.delete(tid); else stdTreeOpen.add(tid);
+    stdRenderTreePop();
+  }
+  else if(action === 'std-tree-check'){ stdSetNodeChecked(btn.dataset.node, !!btn.checked); }
+  else if(action === 'std-tree-flip'){
+    const tn = stdTreeMap[btn.dataset.node];
+    if(tn) stdSetNodeChecked(tn.id, !stdNodeState(tn).checked);
+  }
+  else if(action === 'std-ms-toggle'){
+    const mw = document.getElementById('stdMs-' + btn.dataset.ms);
+    if(mw){ if(!mw.classList.contains('show')) stdRenderMsPop(btn.dataset.ms); mw.classList.toggle('show'); }
+  }
+  else if(action === 'std-ms-check'){ stdToggleMs(btn.dataset.ms, btn.dataset.val, !!btn.checked); }
+  else if(action === 'std-ms-flip'){ stdToggleMs(btn.dataset.ms, btn.dataset.val, stdState[btn.dataset.ms].indexOf(btn.dataset.val) < 0); }
+  else if(action === 'std-search') applyMgmt();
+  else if(action === 'std-reset') resetStdFilters();
+});
+document.getElementById('stdKeyword').addEventListener('input', function(e){ stdState.kw = e.target.value; applyMgmt(); });
+document.getElementById('stdKeyword').addEventListener('keydown', function(e){ if(e.key === 'Enter'){ stdState.kw = e.target.value; applyMgmt(); } });
+document.addEventListener('change', function(e){
+  const t = e.target;
+  if(t.dataset && t.dataset.stdKey){
+    stdState[t.dataset.stdKey] = t.value;
+    // 业务单元变更 → 指标口径联动刷新（清空已选口径、重建候选清单）
+    if(t.dataset.stdKey === 'bizUnit') stdUpdateCaliberCombo();
+    applyMgmt();
+  }
+});
+
+// 初始化查询组件
+stdFillSelect('stdBizUnit', STD_ENUM.bizUnit);
+stdBuildThemeTree();
+stdRenderTreePop();
+STD_MS_KEYS.forEach(stdRenderMsPop);
+stdUpdateCaliberCombo();
+
+function filterByStatus(status, el) {
+  statusFilter = status;
+  currentPage = 1;
+  // Update active tab
+  document.querySelectorAll(".tab").forEach(function(t){ t.classList.remove("active"); });
+  el.classList.add("active");
+  renderPage();
+  updateTabCounts();
+}
+
+function updateCharCount() {
+  var textarea = document.getElementById("offlineReason");
+  var count = textarea.value.length;
+  document.getElementById("charCount").textContent = count + "/500";
+  if (count >= 500) {
+    document.getElementById("charCount").style.color = "#f5a623";
+  } else {
+    document.getElementById("charCount").style.color = "#999";
+  }
+}
+
+function updateBatchCharCount() {
+  var textarea = document.getElementById("batchOfflineReason");
+  var count = textarea.value.length;
+  document.getElementById("batchCharCount").textContent = count + "/500";
+  if (count >= 500) {
+    document.getElementById("batchCharCount").style.color = "#f5a623";
+  } else {
+    document.getElementById("batchCharCount").style.color = "#999";
+  }
+}
+
+function handleOffline(el) {
+  var tr = el.closest("tr");
+  var rowIndex = Array.from(tr.parentNode.children).indexOf(tr);
+  var absIdx = currentPageStart + rowIndex;
+  var row = GRID.rows[absIdx];
+  var nameCol = GRID.headers.findIndex(function(h){return h.indexOf("指标名称")>=0;});
+  var verCol = GRID.headers.findIndex(function(h){return h.indexOf("最新版本号")>=0;});
+  
+  document.getElementById("offlineName").value = row[nameCol] || "--";
+  document.getElementById("offlineVersion").value = row[verCol] || "--";
+  document.getElementById("offlineReason").value = "";
+  
+  var modal = document.getElementById("offlineModal");
+  var btn = document.getElementById("offlineConfirmBtn");
+  btn.onclick = function() {
+    var reason = document.getElementById("offlineReason").value.trim();
+    if (!reason) {
+      document.getElementById("offlineReason").style.borderColor = "#ff4d4f";
+      document.getElementById("offlineReason").focus();
+      return;
+    }
+    // Update status to 已下线, save reason to 停用原因 column
+    var reasonCol = GRID.headers.findIndex(function(h){return h.indexOf("停用原因")>=0;});
+    row[STATUS_COL] = "已下线";
+    if (reasonCol >= 0) row[reasonCol] = reason;
+    modal.style.display = "none";
+    renderPage();
+    updateTabCounts();
+  };
+  modal.style.display = "flex";
+}
+
+</script>
+
+<div class="modal-overlay" id="confirmModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-box">
+    <span class="modal-close" onclick="this.closest('.modal-overlay').style.display='none'">&times;</span>
+    <div class="modal-title"><span class="warn-icon">!</span><span id="confirmMsg">确定发布该指标？</span></div>
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="this.closest('.modal-overlay').style.display='none'">取消</button>
+      <button class="modal-btn modal-btn-confirm" id="confirmBtn">确定</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="batchPublishModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-box" style="min-width:380px;">
+    <span class="modal-close" onclick="this.closest('.modal-overlay').style.display='none'">&times;</span>
+    <div class="modal-title"><span class="warn-icon">!</span><span>确认批量发布？</span></div>
+    <div style="font-size:14px;color:#333;margin-bottom:18px;padding-left:30px;">选择标准个数：<span id="batchPublishCount" style="color:#f5a623;font-weight:bold;">0</span> 个</div>
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="this.closest('.modal-overlay').style.display='none'">取消</button>
+      <button class="modal-btn modal-btn-confirm" id="batchPublishConfirmBtn">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="batchOfflineModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-box" style="min-width:540px;">
+    <span class="modal-close" onclick="this.closest('.modal-overlay').style.display='none'">&times;</span>
+    <div class="modal-title"><span class="warn-icon">!</span><span>确认批量下线？</span></div>
+    <div style="font-size:14px;color:#333;margin-bottom:14px;padding-left:30px;">选择标准个数：<span id="batchOfflineCount" style="color:#f5a623;font-weight:bold;">0</span> 个</div>
+    <div style="margin-bottom:10px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;"><span style="color:#ff4d4f;">*</span> 下线原因</label><div style="position:relative;"><textarea id="batchOfflineReason" rows="4" maxlength="500" oninput="updateBatchCharCount()" placeholder="请输入下线原因" style="width:100%;height:100px;padding:8px 10px;border:1px solid #d9dfe6;border-radius:4px;font-size:13px;font-family:inherit;resize:none;overflow-y:auto;outline:none;box-sizing:border-box;"></textarea><span id="batchCharCount" style="position:absolute;right:8px;bottom:6px;font-size:12px;color:#999;pointer-events:none;">0/500</span></div></div>
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="this.closest('.modal-overlay').style.display='none'">取消</button>
+      <button class="modal-btn modal-btn-confirm" id="batchOfflineConfirmBtn">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="offlineModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-box" style="min-width:540px;">
+    <span class="modal-close" onclick="this.closest('.modal-overlay').style.display='none'">&times;</span>
+    <div class="modal-title"><span class="warn-icon">!</span><span>确定下线该指标？</span></div>
+    <div style="margin-bottom:14px;">
+      <div style="margin-bottom:10px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">指标名称</label><input id="offlineName" readonly style="width:100%;height:32px;padding:0 10px;border:1px solid #d9dfe6;border-radius:4px;background:#f5f6f8;color:#999;font-size:13px;"></div>
+      <div style="margin-bottom:10px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;">下线版本</label><input id="offlineVersion" readonly style="width:100%;height:32px;padding:0 10px;border:1px solid #d9dfe6;border-radius:4px;background:#f5f6f8;color:#999;font-size:13px;"></div>
+      <div style="margin-bottom:10px;"><label style="display:block;font-size:13px;color:#666;margin-bottom:4px;"><span style="color:#ff4d4f;">*</span> 下线原因</label><div style="position:relative;"><textarea id="offlineReason" rows="4" maxlength="500" oninput="updateCharCount()" placeholder="请输入下线原因" style="width:100%;height:100px;padding:8px 10px;border:1px solid #d9dfe6;border-radius:4px;font-size:13px;font-family:inherit;resize:none;overflow-y:auto;outline:none;box-sizing:border-box;"></textarea><span id="charCount" style="position:absolute;right:8px;bottom:6px;font-size:12px;color:#999;pointer-events:none;">0/500</span></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="this.closest('.modal-overlay').style.display='none'">取消</button>
+      <button class="modal-btn modal-btn-confirm" id="offlineConfirmBtn">确定</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

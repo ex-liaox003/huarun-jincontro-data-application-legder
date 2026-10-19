@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>新增指标标准 - 通用报送管理系统</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+  background: #f5f6f8;
+  min-height: 100vh;
+  color: #2c3e50;
+  font-size: 13px;
+}
+
+/* ============ HEADER (same as 指标管理.html) ============ */
+.header {
+  position: relative;
+  background: #ffffff;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px 0 24px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+.watermark {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  overflow: hidden; pointer-events: none; z-index: 1; opacity: 0.55;
+}
+.watermark-row {
+  display: flex; gap: 90px; white-space: nowrap;
+  transform: rotate(-18deg); transform-origin: left top;
+  margin: -20px 0; font-size: 12px;
+  color: rgba(70,70,70,0.14); letter-spacing: 1px; font-weight: bold;
+}
+.watermark-row span { flex-shrink: 0; }
+.header-left, .header-nav, .header-right { position: relative; z-index: 2; }
+.header-left { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
+.logo-block { display: flex; align-items: center; gap: 10px; }
+.logo-img { height: 56px; width: auto; display: block; object-fit: contain; }
+.divider {
+  width: 1px; height: 32px;
+  background: linear-gradient(180deg, transparent, #d5d9de 30%, #d5d9de 70%, transparent);
+}
+.system-title { font-size: 20px; font-weight: bold; color: #2c3e50; letter-spacing: 2px; }
+.header-nav {
+  display: flex; align-items: center; gap: 4px;
+  flex: 1; justify-content: center; margin: 0 20px;
+}
+.nav-item {
+  padding: 8px 22px; height: 40px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 15px; color: #4a5568;
+  cursor: pointer; border-radius: 4px;
+  transition: all 0.2s; font-weight: 500;
+  text-decoration: none;
+}
+.nav-item:hover { color: #f5a623; }
+.nav-item.active {
+  background: linear-gradient(180deg, #fff3e0 0%, #ffe4c1 100%);
+  color: #f5a623; font-weight: bold;
+}
+.nav-item .arrow { font-size: 10px; color: #8a94a3; margin-left: 2px; }
+.nav-item:hover .arrow { color: #f5a623; }
+.header-right {
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0; padding-left: 20px;
+}
+.user-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1.5px solid #4a5568;
+  display: flex; align-items: center; justify-content: center;
+}
+.user-icon svg { width: 18px; height: 18px; }
+.user-name { font-size: 15px; color: #2c3e50; font-weight: 500; }
+
+/* ============ PAGE MAIN ============ */
+.page-container { padding: 12px 16px 80px; }
+
+/* Breadcrumb */
+.breadcrumb {
+  background: #fff;
+  padding: 12px 20px;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #6b7684;
+}
+.breadcrumb a {
+  color: #6b7684;
+  text-decoration: none;
+  cursor: pointer;
+}
+.breadcrumb a:hover { color: #f5a623; }
+.breadcrumb span:not(.sep) { color: #6b7684; }
+.breadcrumb .sep { margin: 0 6px; color: #b8c1cc; }
+.breadcrumb .current { color: #2c3e50; font-weight: 500; }
+
+/* Form Panel */
+.form-panel {
+  background: #fff;
+  border-radius: 6px;
+  padding: 0 0 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-bottom: 12px;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px 14px;
+  border-bottom: 1px solid #f0f2f5;
+  cursor: pointer;
+  user-select: none;
+}
+.section-title {
+  font-size: 15px;
+  font-weight: bold;
+  color: #2c3e50;
+  position: relative;
+  padding-left: 12px;
+}
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 4px; height: 16px;
+  background: #f5a623;
+  border-radius: 2px;
+}
+.section-toggle {
+  color: #8a94a3;
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+.section-toggle.collapsed { transform: rotate(180deg); }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 18px 40px;
+  padding: 22px 28px 6px;
+}
+.form-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.form-item.full {
+  grid-column: 1 / -1;
+}
+.form-item label {
+  width: 120px;
+  text-align: right;
+  font-size: 13px;
+  color: #4a5568;
+  flex-shrink: 0;
+  flex-grow: 0;
+  padding-top: 8px;
+  line-height: 1.4;
+  word-break: break-all;
+}
+.form-item label::after { content: ':'; margin-left: 2px; }
+.form-item label.required::before {
+  content: '*';
+  color: #ff4d4f;
+  margin-right: 2px;
+}
+.form-item label.highlight { color: #52c41a; font-weight: 600; }
+.form-input, .form-select, .form-textarea {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #d9dfe6;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #2c3e50;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+.form-input::placeholder,
+.form-textarea::placeholder { color: #b8c1cc; }
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus { border-color: #f5a623; }
+.form-input:disabled,
+.form-input.readonly {
+  background: #f5f6f8;
+  color: #8a94a3;
+  cursor: not-allowed;
+}
+.form-select {
+  appearance: none;
+  padding-right: 28px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  cursor: pointer;
+}
+.select-with-icon {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.level-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.question-tooltip {
+  position: relative;
+  display: inline-flex;
+  cursor: help;
+}
+.question-icon {
+  color: #f5a623;
+}
+.question-icon circle {
+  fill: currentColor;
+}
+.tooltip-content {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: 18px;
+  left: -8px;
+  width: 480px;
+  background: #fff;
+  border: 1px solid #e8eef4;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-size: 12px;
+  line-height: 1.7;
+  color: #4a5568;
+  z-index: 100;
+  transition: opacity 0.2s;
+  text-align: left;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f2f5;
+  flex-shrink: 0;
+}
+.tooltip-header strong {
+  color: #2c3e50;
+  font-size: 13px;
+}
+.tooltip-close {
+  width: 22px;
+  height: 22px;
+  line-height: 20px;
+  text-align: center;
+  border: none;
+  background: transparent;
+  color: #999;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 0;
+  margin: 0;
+}
+.tooltip-close:hover {
+  color: #333;
+  background: #f0f0f0;
+}
+.tooltip-body {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 14px 16px;
+}
+.tooltip-body p {
+  margin: 0 0 8px 0;
+}
+.question-tooltip:hover .tooltip-content,
+.tooltip-content:hover {
+  visibility: visible;
+  opacity: 1;
+}
+.question-tooltip.tooltip-force-hidden .tooltip-content {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+.textarea-wrap {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+.form-textarea {
+  width: 100%;
+  height: 80px;
+  padding: 8px 10px;
+  resize: vertical;
+  line-height: 1.5;
+}
+.char-count {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
+  font-size: 12px;
+  color: #b8c1cc;
+  pointer-events: none;
+  background: #fff;
+  padding: 0 2px;
+}
+
+/* Buttons (reuse from 指标管理.html) */
+.btn {
+  height: 32px;
+  padding: 0 20px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.btn-primary {
+  background: #f5a623;
+  color: #fff;
+  border-color: #f5a623;
+}
+.btn-primary:hover { background: #e69512; }
+.btn-default {
+  background: #fff;
+  color: #4a5568;
+  border-color: #d9dfe6;
+}
+.btn-default:hover { color: #f5a623; border-color: #f5a623; }
+.btn-outline-primary {
+  background: #fff;
+  color: #f5a623;
+  border-color: #f5a623;
+}
+.btn-outline-primary:hover { background: #fff3e0; }
+
+/* Sticky footer actions */
+.form-footer {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  background: #fff;
+  border-top: 1px solid #eaedf1;
+  padding: 12px 32px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 -2px 6px rgba(0,0,0,0.04);
+  z-index: 10;
+}
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="watermark">
+    <div class="watermark-row" style="margin-top:-6px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+    </div>
+    <div class="watermark-row" style="margin-left:120px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+    </div>
+    <div class="watermark-row" style="margin-left:60px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+    </div>
+    <div class="watermark-row" style="margin-left:180px">
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+      <span>9313严格保密信息</span><span>9313严格保密信息</span><span>9313严格保密信息</span>
+    </div>
+  </div>
+
+  <div class="header-left">
+    <div class="logo-block">
+      <img class="logo-img" src=".codepilot-uploads/1784702798492-image.png" alt="华润金融 CR CAPITAL">
+    </div>
+    <div class="divider"></div>
+    <div class="system-title">通用报送管理系统</div>
+  </div>
+
+  <div class="header-nav">
+    <a class="nav-item" href="通用报送管理系统-导航.html">首页</a>
+    <div class="nav-item active">指标管理</div>
+    <div class="nav-item">报送管理 <span class="arrow">▼</span></div>
+    <div class="nav-item">任务管理</div>
+    <div class="nav-item">模版管理</div>
+    <div class="nav-item">消息管理 <span class="arrow">▼</span></div>
+    <div class="nav-item">系统管理 <span class="arrow">▼</span></div>
+  </div>
+
+  <div class="header-right">
+    <div class="user-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="8" r="4" stroke="#4a5568" stroke-width="1.8"/>
+        <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="#4a5568" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="user-name">金控管理岗</span>
+  </div>
+</div>
+
+<!-- PAGE CONTAINER -->
+<div class="page-container">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="指标管理.html">指标管理</a>
+    <span class="sep">&gt;</span>
+    <span class="current">新增指标标准</span>
+  </div>
+
+  <!-- Form Panel: 业务属性 -->
+  <div class="form-panel">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title">业务属性</div>
+      <div class="section-toggle">▲</div>
+    </div>
+    <div class="form-grid section-body">
+      <!-- Row 1 -->
+      <div class="form-item">
+        <label class="required">指标标准编号</label>
+        <input class="form-input" id="indicatorCode" placeholder="请输入" />
+      </div>
+      <div class="form-item">
+        <label class="required">指标分组编号</label>
+        <input class="form-input" id="groupCode" placeholder="请输入" />
+      </div>
+      <div class="form-item">
+        <label class="required">指标名称</label>
+        <input class="form-input" id="indicatorName" placeholder="请输入" />
+      </div>
+
+      <!-- Row 2 -->
+      <div class="form-item">
+        <label>指标英文名称</label>
+        <input class="form-input" id="indicatorNameEn" placeholder="请输入" />
+      </div>
+      <div class="form-item">
+        <label class="required">业务单元</label>
+        <select class="form-select" id="bizUnit">
+          <option>请选择</option>
+          <option>华润金融</option>
+          <option>华润银行</option>
+          <option>华润租赁</option>
+          <option>华润信托</option>
+          <option>华润资产</option>
+          <option>华润保险</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <label class="required">指标主题</label>
+        <select class="form-select" id="indicatorTheme" onchange="onThemeChange()">
+          <option>请选择</option>
+          <option>战略</option>
+          <option>风险</option>
+          <option>财务</option>
+        </select>
+      </div>
+
+      <!-- Row 3 -->
+      <div class="form-item">
+        <label class="required">一级分类</label>
+        <select class="form-select" id="categoryLevel1" onchange="onLevel1Change()"><option>请选择</option></select>
+      </div>
+      <div class="form-item">
+        <label>二级分类</label>
+        <select class="form-select" id="categoryLevel2" onchange="onLevel2Change()"><option>请选择</option></select>
+      </div>
+      <div class="form-item">
+        <label>三级分类</label>
+        <select class="form-select" id="categoryLevel3"><option>请选择</option></select>
+      </div>
+
+      <!-- Row 4 -->
+      <div class="form-item">
+        <label class="required">指标类型</label>
+        <select class="form-select" id="indicatorType">
+          <option>请选择</option>
+          <option>基础指标</option>
+          <option>复合指标</option>
+          <option>派生指标</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <label class="required">指标口径</label>
+        <select class="form-select" id="indicatorCaliber">
+          <option>请选择</option>
+          <option>合并报表口径</option>
+          <option>单体报表口径</option>
+          <option>单体考核口径</option>
+          <option>资产本部口径</option>
+          <option>渝康单体口径</option>
+          <option>资产本部及渝康合并口径</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <label class="required">指标单位</label>
+        <select class="form-select" id="indicatorUnit"><option>请选择</option></select>
+      </div>
+
+      <!-- Row 5 -->
+      <div class="form-item">
+        <label>数据范围</label>
+        <select class="form-select" id="dataRange"><option>请选择</option></select>
+      </div>
+      <div class="form-item">
+        <label class="required">更新频次</label>
+        <select class="form-select" id="updateFreq">
+          <option>请选择</option>
+          <option>日度</option>
+          <option>月度</option>
+          <option>季度</option>
+          <option>半年度</option>
+          <option>年度</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <label class="required">时间维度</label>
+        <select class="form-select" id="timeDimension">
+          <option>请选择</option>
+          <option>本日数</option>
+          <option>本日末</option>
+          <option>本月数</option>
+          <option>本月末</option>
+          <option>本季数</option>
+          <option>本季末</option>
+          <option>本年末</option>
+          <option>本年累计数</option>
+        </select>
+      </div>
+
+      <!-- Row 6 -->
+      <div class="form-item">
+        <label class="required">业务单元供数部门</label>
+        <select class="form-select" id="bizSupplyDept"><option>请选择</option></select>
+      </div>
+      <div class="form-item">
+        <label>业务单元IT对接人</label>
+        <input class="form-input" id="bizItContact" placeholder="请输入" />
+      </div>
+      <div class="form-item">
+        <label>指标责任人</label>
+        <input class="form-input" id="bizBizContact" placeholder="请输入" />
+      </div>
+
+      <!-- Row 7 -->
+      <div class="form-item">
+        <label>指标来源业务单元系统名称</label>
+        <input class="form-input" id="bizSourceSystem" placeholder="请输入" />
+      </div>
+      <div class="form-item">
+        <label>指标来源业务单元系统报表</label>
+        <input class="form-input" id="bizSourceReport" placeholder="请输入" />
+      </div>
+      <div class="form-item">
+        <label class="required">指标属性标签</label>
+        <select class="form-select" id="assessTag">
+          <option>请选择</option>
+          <option>考核指标</option>
+          <option>高质量指标</option>
+        </select>
+      </div>
+
+      <!-- Row 8 -->
+      <div class="form-item">
+        <label class="required">是否监管指标</label>
+        <select class="form-select" id="isRegulatory" onchange="toggleRegulatoryAgency()">
+          <option>请选择</option>
+          <option>是</option>
+          <option>否</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <label id="regulatoryAgencyLabel">报送监管机构</label>
+        <select class="form-select" id="regulatoryAgency" disabled>
+          <option>请选择</option>
+          <option>金监总局</option>
+          <option>国资委</option>
+        </select>
+      </div>
+
+      <!-- Full-width textareas -->
+      <div class="form-item full">
+        <label>指标计算公式</label>
+        <div class="textarea-wrap">
+          <textarea class="form-textarea" id="calcFormula" maxlength="500" placeholder="请输入" oninput="updateCount(this)"></textarea>
+          <span class="char-count">0/500</span>
+        </div>
+      </div>
+
+      <div class="form-item full">
+        <label class="required">指标定义</label>
+        <div class="textarea-wrap">
+          <textarea class="form-textarea" id="indicatorDefinition" maxlength="500" placeholder="请输入" oninput="updateCount(this)"></textarea>
+          <span class="char-count">0/500</span>
+        </div>
+      </div>
+
+      <div class="form-item full">
+        <label>业务属性备注</label>
+        <div class="textarea-wrap">
+          <textarea class="form-textarea" id="bizRemark" maxlength="500" placeholder="请输入" oninput="updateCount(this)"></textarea>
+          <span class="char-count">0/500</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Panel: 技术属性 -->
+  <div class="form-panel">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title">技术属性</div>
+      <div class="section-toggle">▲</div>
+    </div>
+    <div class="form-grid section-body">
+      <!-- Row 1 -->
+      <div class="form-item">
+        <label>来源金控系统名称</label>
+        <select class="form-select" id="ctrlSystemName"><option>请选择</option></select>
+      </div>
+      <div class="form-item">
+        <label>来源金控系统报表</label>
+        <select class="form-select" id="ctrlReportName"><option>请选择</option></select>
+      </div>
+      <div class="form-item">
+        <label>时间类型</label>
+        <select class="form-select" id="timeType"><option>请选择</option></select>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="form-item">
+        <label class="required">数据类型</label>
+        <select class="form-select" id="dataType"><option>请选择</option></select>
+      </div>
+      <div class="form-item">
+        <label>数据格式</label>
+        <input class="form-input" id="dataFormat" placeholder="请输入" />
+      </div>
+      <div class="form-item">
+        <label>值域</label>
+        <input class="form-input" id="valueRange" placeholder="请输入" />
+      </div>
+
+      <!-- Row 3 -->
+      <div class="form-item">
+        <label>计量单位</label>
+        <select class="form-select" id="measureUnit"><option>请选择</option></select>
+      </div>
+      <div class="form-item">
+        <label class="required">是否入数据湖</label>
+        <select class="form-select" id="isDataLake">
+          <option>请选择</option>
+          <option>是</option>
+          <option>否</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <label class="required">唯一性识别规则金融湖库名</label>
+        <select class="form-select" id="lakeDbName"><option>请选择</option></select>
+      </div>
+
+      <!-- Row 4 -->
+      <div class="form-item">
+        <label class="required">唯一性识别规则金融湖表名</label>
+        <select class="form-select" id="lakeTableName"><option>请选择</option></select>
+      </div>
+      <div class="form-item">
+        <label>唯一性识别规则公司code</label>
+        <select class="form-select" id="ruleCompanyCode"><option>请选择</option></select>
+      </div>
+      <div class="form-item">
+        <label>唯一性识别规则时间维度字段</label>
+        <input class="form-input" id="ruleTimeField" placeholder="请输入" />
+      </div>
+
+      <!-- Row 5 -->
+      <div class="form-item">
+        <label class="required">唯一性识别规则统计时间字段</label>
+        <input class="form-input" id="ruleStatTimeField" placeholder="请输入" />
+      </div>
+      <div class="form-item">
+        <label class="required">唯一性识别规则报表名称code</label>
+        <input class="form-input" id="ruleReportCode" placeholder="请输入" />
+      </div>
+      <div class="form-item">
+        <label>取数方式</label>
+        <select class="form-select" id="fetchMethod">
+          <option>请选择</option>
+          <option>FTP文件传输</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <label class="required">推送表名</label>
+        <input class="form-input" id="pushTableName" placeholder="请输入" />
+      </div>
+      <div class="form-item">
+        <label class="required">指标来源编号</label>
+        <input class="form-input" id="sourceCode" placeholder="请输入" />
+      </div>
+
+      <!-- Full-width textareas -->
+      <div class="form-item full">
+        <label>技术属性备注</label>
+        <div class="textarea-wrap">
+          <textarea class="form-textarea" id="techRemark" maxlength="500" placeholder="请输入" oninput="updateCount(this)"></textarea>
+          <span class="char-count">0/500</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Panel: 管理属性 -->
+  <div class="form-panel">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title">管理属性</div>
+      <div class="section-toggle">▲</div>
+    </div>
+    <div class="form-grid section-body">
+      <!-- Row 1 -->
+      <div class="form-item">
+        <label class="required">指标需求部门</label>
+        <select class="form-select" id="reportDept"><option>请选择</option></select>
+      </div>
+      <div class="form-item">
+        <label class="required">指标需求人</label>
+        <select class="form-select" id="indicatorOwner"><option>请选择</option></select>
+      </div>
+      <div class="form-item">
+        <label class="required">指标管理部门</label>
+        <select class="form-select" id="manageDept">
+          <option>请选择</option>
+          <option>战略</option>
+          <option>风险</option>
+          <option>财务</option>
+        </select>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="form-item">
+        <label class="required">安全级别</label>
+        <div class="select-with-icon">
+          <div class="question-tooltip">
+            <svg class="level-icon question-icon" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" fill="currentColor"/>
+              <text x="12" y="17" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold" font-family="Arial, Helvetica, sans-serif">?</text>
+            </svg>
+            <div class="tooltip-content">
+              <div class="tooltip-header">
+                <strong>说明</strong>
+                <button class="tooltip-close" type="button" onclick="closeTooltip(this)" aria-label="关闭">×</button>
+              </div>
+              <div class="tooltip-body">
+                <p>【1级 公开数据】</p>
+              <p>1）数据一般可被公开或可被公众获知、使用。</p>
+              <p>2）个人信息主体主动公开的信息。</p>
+              <p>3）数据的安全性遭到破坏后，可能对个人隐私或企业合法权益不造成影响，或仅造成微弱影响，但不影响国家安全、公众权益。</p>
+              <p>注：1级数据具有公共传播属性，可对外公开发布、转发传播，但也需考虑公开的数据量及类别，避免由于类别较多或者数量过大被用于关联分析。</p>
+              <p>【2级 内部数据】</p>
+              <p>1）数据用于行业机构一般业务使用，通常为内部管理且不宜广泛公开的数据。</p>
+              <p>2）组织内部员工个人信息。</p>
+              <p>3）数据的安全性遭到破坏后，对个人隐私或企业合法权益造成轻微影响，但不影响国家安全、公众权益。</p>
+              <p>注：2级数据通常在组织内部、关联方共享和使用，相关方授权后可向组织外部共享。</p>
+              <p>【3级 秘密数据】</p>
+              <p>1）数据用于行业机构关键或重要业务使用。</p>
+              <p>2）一般个人信息，如网络身份标识信息。</p>
+              <p>3）数据的安全性遭到破坏后，对个人隐私或企业合法权益造成一般影响，但不影响国家安全。</p>
+              <p>注：3级数据仅能由授权的内部机构或人员访问，如果要将数据共享到外部，需要满足相关条件并获得相关方的授权。</p>
+              <p>【4级 机密数据】</p>
+              <p>1）数据通常主要用于行业大型或特大型机构、交易过程中重要核心节点类机构的重要业务4级使用。通常为等保三级以上和关键信息基础设施安全保护相关数据。</p>
+              <p>2）敏感个人信息，包括生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等信息。</p>
+              <p>3）数据安全性遭到破坏后，对个人隐私或企业合法权益造成严重影响。可能对国家轻微影响，或对公众利益造成影响。</p>
+              <p>注：4级数据按照批准的授权列表严格管理，仅能在受控范围内经过严格审批、评估后才可共享或传播。</p>
+              <p>【5级 绝密数据】</p>
+              <p>1）数据通常主要用于行业大型或特大型机构、交易过程中重要核心节点类机构的关键业务使用。主要关系国家安全、国民经济命脉、重要民生和重大公共利益等的数据。一般针对特定人员公开，且仅为必须知悉的对象访问或使用。</p>
+              <p>2）数据安全性遭到破坏后，对国家安全造成一般或严重影响，或对公众权益造成严重影响。</p>
+              <p>注："必须知悉"是指对数据确定知悉范围，只有对数据知悉有明确的必要性时，该对象才能对数据知悉。一般情况下遵循工作需要原则和最小化原则，前者指因工作必须才可知悉，后者指知悉的范围满足最小够用即可。</p>
+              </div>
+            </div>
+          </div>
+          <select class="form-select" id="securityLevel">
+            <option>请选择</option>
+            <option>L1-一般其他数据</option>
+            <option>L2-一般敏感数据</option>
+            <option>L3-重要数据</option>
+            <option>L4-核心数据</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-item">
+        <label class="required">是否共享</label>
+        <select class="form-select" id="isShared">
+          <option>请选择</option>
+          <option>是</option>
+          <option>否</option>
+        </select>
+      </div>
+      <div class="form-item"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer Actions -->
+<div class="form-footer">
+  <button class="btn btn-primary" onclick="saveForm()">保&nbsp;存</button>
+  <button class="btn btn-default" onclick="goBack()">取&nbsp;消</button>
+</div>
+
+<script>
+function toggleSection(headerEl) {
+  const body = headerEl.nextElementSibling;
+  const toggle = headerEl.querySelector('.section-toggle');
+  if (body.style.display === 'none') {
+    body.style.display = '';
+    toggle.classList.remove('collapsed');
+  } else {
+    body.style.display = 'none';
+    toggle.classList.add('collapsed');
+  }
+}
+
+function updateCount(el) {
+  const count = el.parentElement.querySelector('.char-count');
+  count.textContent = el.value.length + '/500';
+}
+
+function goBack() {
+  window.location.href = '指标管理.html';
+}
+
+function saveForm(publish) {
+  alert(publish ? '已保存并发布(示例)' : '已保存(示例)');
+  window.location.href = '指标管理.html';
+}
+
+function closeTooltip(btn) {
+  const wrapper = btn.closest('.question-tooltip');
+  if (wrapper) {
+    wrapper.classList.add('tooltip-force-hidden');
+  }
+}
+
+document.querySelectorAll('.question-tooltip').forEach(function(el) {
+  el.addEventListener('mouseleave', function() {
+    this.classList.remove('tooltip-force-hidden');
+  });
+});
+
+function toggleRegulatoryAgency() {
+  const isRegulatory = document.getElementById('isRegulatory');
+  const agency = document.getElementById('regulatoryAgency');
+  const label = document.getElementById('regulatoryAgencyLabel');
+  if (!isRegulatory || !agency || !label) return;
+
+  if (isRegulatory.value === '是') {
+    label.classList.add('required');
+    agency.disabled = false;
+  } else {
+    label.classList.remove('required');
+    agency.disabled = true;
+    agency.value = '请选择';
+  }
+}
+
+toggleRegulatoryAgency();
+
+const categoryData = {
+  '风险': {
+    '问题资产指标': {
+      '不良类': ['不良资产变动', '不良资产规模'],
+      '问题资产类': ['问题资产规模', '问题资产减值计提'],
+      '关注类': ['关注资产规模'],
+      '正常但预警类': ['正常但预警资产规模'],
+      '其他关键指标': []
+    },
+    '风险偏好指标': {
+      '信用风险': [],
+      '流动性风险': [],
+      '总体风险': [],
+      '市场风险': [],
+      '合规风险': [],
+      '操作风险': [],
+      '声誉风险': [],
+      '信息科技风险': [],
+      '集中度风险': [],
+      '国别风险': [],
+      '其他风险': []
+    },
+    '集中度风险管理指标': {
+      '客户集中度': [],
+      '地区集中度': [],
+      '行业集中度': []
+    }
+  }
+};
+
+function updateSelectOptions(selectId, options) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  select.innerHTML = '';
+  const defaultOption = document.createElement('option');
+  defaultOption.textContent = '请选择';
+  select.appendChild(defaultOption);
+  options.forEach(function(opt) {
+    const option = document.createElement('option');
+    option.textContent = opt;
+    select.appendChild(option);
+  });
+}
+
+function onThemeChange() {
+  const theme = document.getElementById('indicatorTheme').value;
+  const level1Data = categoryData[theme] || {};
+  updateSelectOptions('categoryLevel1', Object.keys(level1Data));
+  updateSelectOptions('categoryLevel2', []);
+  updateSelectOptions('categoryLevel3', []);
+}
+
+function onLevel1Change() {
+  const theme = document.getElementById('indicatorTheme').value;
+  const level1 = document.getElementById('categoryLevel1').value;
+  const level2Data = (categoryData[theme] || {})[level1] || {};
+  updateSelectOptions('categoryLevel2', Object.keys(level2Data));
+  updateSelectOptions('categoryLevel3', []);
+}
+
+function onLevel2Change() {
+  const theme = document.getElementById('indicatorTheme').value;
+  const level1 = document.getElementById('categoryLevel1').value;
+  const level2 = document.getElementById('categoryLevel2').value;
+  const level3Options = ((categoryData[theme] || {})[level1] || {})[level2] || [];
+  updateSelectOptions('categoryLevel3', level3Options);
+}
+
+// ========== 编辑模式：从 sessionStorage 自动回填 ==========
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('mode') !== 'edit') return;
+  var raw = null;
+  try { raw = sessionStorage.getItem('editIndicator'); } catch(e) {}
+  if (!raw) return;
+  var data;
+  try { data = JSON.parse(raw); } catch(e) { return; }
+
+  // 更新标题和面包屑
+  document.title = '编辑指标标准 - 通用报送管理系统';
+  var bc = document.querySelector('.breadcrumb');
+  if (bc) bc.innerHTML = '<a href="指标管理.html">指标管理</a><span class="sep">&gt;</span><span class="current">编辑指标标准</span>';
+
+  // 列名 → 表单字段 ID 映射
+  var M = {
+    '指标标准编号':'indicatorCode','指标分组编号':'groupCode','指标主题':'indicatorTheme',
+    '一级分类':'categoryLevel1','二级分类':'categoryLevel2','三级分类':'categoryLevel3',
+    '指标名称':'indicatorName','指标英文名称':'indicatorNameEn',
+    '指标类型':'indicatorType','指标口径':'indicatorCaliber',
+    '指标单位':'indicatorUnit','数据范围':'dataRange',
+    '更新频次':'updateFreq','时间维度':'timeDimension',
+    '业务单元':'bizUnit','业务单元供数部门':'bizSupplyDept',
+    '业务单元IT对接人':'bizItContact','指标责任人':'bizBizContact',
+    '指标来源业务单元系统名称':'bizSourceSystem','指标来源业务单元系统报表':'bizSourceReport',
+    '指标属性标签':'assessTag','是否监管指标':'isRegulatory','报送监管机构':'regulatoryAgency',
+    '指标计算公式':'calcFormula','指标定义':'indicatorDefinition','业务属性备注':'bizRemark',
+    '来源金控系统名称':'ctrlSystemName','来源金控系统报表':'ctrlReportName',
+    '时间类型':'timeType','数据类型':'dataType','数据格式':'dataFormat','值域':'valueRange',
+    '计量单位':'measureUnit','是否入数据湖':'isDataLake',
+    '唯一性识别规则数据湖库名':'lakeDbName','唯一性识别规则数据湖表名':'lakeTableName',
+    '唯一性识别规则公司code':'ruleCompanyCode',
+    '唯一性识别规则时间维度字段':'ruleTimeField',
+    '唯一性识别规则统计时间字段':'ruleStatTimeField',
+    '唯一性识别规则报表code字段':'ruleReportCode',
+    '取数方式':'fetchMethod','推送表名':'pushTableName','指标来源编号':'sourceCode','技术属性备注':'techRemark',
+    '指标需求部门':'reportDept','指标需求人':'indicatorOwner',
+    '指标管理部门':'manageDept','安全级别':'securityLevel','是否共享':'isShared'
+  };
+
+  function clean(v) { return (v === '--' || v === '' || v == null) ? '' : String(v); }
+
+  function setVal(id, val) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var v = clean(val);
+    if (el.tagName === 'TEXTAREA') {
+      el.value = v;
+      var cc = el.parentElement.querySelector('.char-count');
+      if (cc) cc.textContent = v.length + '/500';
+    } else if (el.tagName === 'SELECT') {
+      if (!v) return;
+      // 若值不在选项中，动态添加
+      var found = false;
+      for (var i = 0; i < el.options.length; i++) {
+        if (el.options[i].text === v || el.options[i].value === v) { el.value = v; found = true; break; }
+      }
+      if (!found) {
+        var opt = document.createElement('option'); opt.value = v; opt.text = v;
+        el.appendChild(opt); el.value = v;
+      }
+    } else {
+      el.value = v;
+    }
+  }
+
+  // 按依赖顺序回填：主题 → 一级 → 二级 → 三级（联动下拉）
+  var skip = {'指标主题':1,'一级分类':1,'二级分类':1,'三级分类':1,'是否监管指标':1};
+  if (data['指标主题']) { setVal('indicatorTheme', data['指标主题']); onThemeChange(); }
+  if (data['一级分类'])  { setVal('categoryLevel1', data['一级分类']); onLevel1Change(); }
+  if (data['二级分类'])  { setVal('categoryLevel2', data['二级分类']); onLevel2Change(); }
+  if (data['三级分类'])  { setVal('categoryLevel3', data['三级分类']); }
+  if (data['是否监管指标']) { setVal('isRegulatory', data['是否监管指标']); toggleRegulatoryAgency(); }
+
+  // 其余字段
+  Object.keys(M).forEach(function(h) {
+    if (skip[h]) return;
+    if (data[h] != null) setVal(M[h], data[h]);
+  });
+
+  // 编辑模式下指标标准编号只读
+  var codeEl = document.getElementById('indicatorCode');
+  if (codeEl) codeEl.readOnly = true;
+})();
+</script>
+</body>
+</html>
