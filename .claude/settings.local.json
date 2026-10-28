@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(where python *)",
+      "Bash(py --version)",
+      "Bash(where unzip *)",
+      "Bash(powershell -Command \"Get-Command Import-Excel -ErrorAction SilentlyContinue\")",
+      "Bash(unzip -o -q 华润银行整合版.xlsx -d _xlsx_tmp)",
+      "Bash(node _parse_xlsx.js)",
+      "Bash(node -e ' *)",
+      "Bash(unzip -o \"华润银行整合版.xlsx\" -d _xlsx_tmp/)",
+      "Bash(node _parse_xlsx2.js)",
+      "Bash(node _parse_xlsx3.js)",
+      "Bash(node -e \"var fs=require\\('fs'\\);var html=fs.readFileSync\\('指标管理.html','utf8'\\);var m=html.match\\(/<script type=.application.json. id=.grid-data.>\\([\\\\\\\\s\\\\\\\\S]*?\\)<\\\\\\\\/script>/\\);var grid=JSON.parse\\(m[1]\\);grid.headers.forEach\\(function\\(h,i\\){console.log\\(i+': '+h\\);}\\);\")",
+      "Bash(node -e \"var fs=require\\('fs'\\);var html=fs.readFileSync\\('指标管理.html','utf8'\\);var m=html.match\\(/<script type=.application.json. id=.grid-data.>\\([\\\\\\\\s\\\\\\\\S]*?\\)<\\\\\\\\/script>/\\);var grid=JSON.parse\\(m[1]\\);var allVals=new Set\\(\\);grid.rows.forEach\\(function\\(r\\){r.forEach\\(function\\(v\\){if\\(v\\)allVals.add\\(v\\);}\\);}\\);var suspicious=[...allVals].filter\\(function\\(v\\){return /^\\(137|139|117|122|188|219|244|247|250|63|64|111|143|155|164|170|176|183|193|201|208|215|216|224|229|235|240\\)$/.test\\(v\\);}\\);console.log\\('Suspicious numeric values in data:',suspicious\\);\")",
+      "Bash(xxd)",
+      "Bash(node -e \"var fs=require\\('fs'\\);var c=fs.readFileSync\\('指标管理.html','utf8'\\);var ls=c.split\\('\\\\n'\\);for\\(var i=171;i<210;i++\\){console.log\\(\\(i+1\\)+': '+ls[i]\\);}\")",
+      "Bash(node -e \"var fs=require\\('fs'\\);var c=fs.readFileSync\\('指标管理.html','utf8'\\);console.log\\(c.substring\\(c.indexOf\\('.filter-actions'\\),c.indexOf\\('.filter-actions'\\)+300\\)\\);\")",
+      "Bash(node -e \"var fs=require\\('fs'\\);var c=fs.readFileSync\\('指标管理.html','utf8'\\);console.log\\('filter-actions grid-column:',c.match\\(/grid-column:\\\\s*\\\\d\\\\s*\\\\/\\\\s*\\\\d/\\)\\);console.log\\('btn-default color:',c.match\\(/\\\\.btn-default\\\\s*\\\\{[^}]+color:\\\\s*#[0-9a-f]+/\\)\\);console.log\\('btn-default border:',c.match\\(/\\\\.btn-default\\\\s*\\\\{[^}]+border-color:\\\\s*#[0-9a-f]+/\\)\\);\")",
+      "Bash(node -e \"var fs=require\\('fs'\\);var c=fs.readFileSync\\('指标管理.html','utf8'\\);var ls=c.split\\('\\\\n'\\);for\\(var i=0;i<ls.length;i++\\){if\\(ls[i].indexOf\\('.tab'\\)>=0 && ls[i].indexOf\\('{'\\)>=0\\){for\\(var j=i;j<Math.min\\(i+15,ls.length\\);j++\\){console.log\\(\\(j+1\\)+': '+ls[j]\\);}console.log\\('---'\\);}}}\")",
+      "Bash(node -e \"var fs=require\\('fs'\\);var c=fs.readFileSync\\('指标管理.html','utf8'\\);var m=c.match\\(/\\\\.tab\\\\.active\\\\s*\\\\{[^}]+\\\\}/\\);if\\(m\\)console.log\\(m[0]\\);else console.log\\('NOT FOUND'\\);\")",
+      "Bash(node -e \"var fs=require\\('fs'\\);var c=fs.readFileSync\\('指标管理.html','utf8'\\);var m=c.match\\(/\\\\.tab[^{]*\\\\{[^}]+\\\\}/g\\);if\\(m\\)m.forEach\\(function\\(s\\){console.log\\(s\\);console.log\\('---'\\);}\\);\")",
+      "Bash(node -e \"var fs=require\\('fs'\\);var c=fs.readFileSync\\('指标管理.html','utf8'\\);var m=c.match\\(/\\\\.tab\\\\s*\\\\{[^}]+\\\\}/\\);if\\(m\\)console.log\\(m[0]\\);\")",
+      "Bash(node -e \"var fs=require\\('fs'\\);var c=fs.readFileSync\\('指标管理.html','utf8'\\);var m1=c.match\\(/\\\\.filter-panel\\\\s*\\\\{[^}]+\\\\}/\\);var m2=c.match\\(/\\\\.table-panel\\\\s*\\\\{[^}]+\\\\}/\\);if\\(m1\\)console.log\\('filter-panel:',m1[0]\\);if\\(m2\\)console.log\\('table-panel:',m2[0]\\);\")",
+      "Bash(node _fix_sec.js)",
+      "Bash(node _fix_sec2.js)",
+      "Bash(node _fix_confirm.js)",
+      "Bash(node _fix_publish.js)",
+      "Bash(node _fix_delete.js)",
+      "Bash(node _fix_batch.js)",
+      "Bash(node _fix_query.js)",
+      "Bash(node _fix_tabs.js)"
+    ]
+  }
+}

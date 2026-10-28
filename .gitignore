@@ -1,7 +1,6 @@
-.claude/
-.codepilot-uploads/
-.uploads/
-_tpl_tmp/
+_refdocx/
+*.bak
 bash.exe.stackdump
-*.stackdump
-~$*
+node_modules/
+_shot_*.html
+_dom_dump.html
