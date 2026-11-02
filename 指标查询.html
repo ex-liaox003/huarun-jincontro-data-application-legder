@@ -1741,7 +1741,7 @@ function stdDistinct(key){
 const STD_ENUM = {
   bizUnit: ['华润金融','华润银行','华润信托','华润租赁','华润保险','华润资产','华润深国投'],
   freq: ['日度','月度','季度','半年度','年度'],
-  timeDim: ['本日数','本日末','本月数','本月末','本季数','本季末','本年度','本年累计数'],
+  timeDim: ['本日发生数','本日末','本月发生数','本月末','本季累计数','本季末','本年累计数','本年末'],
   status: ['未发布','已发布','已下线'],
   assess: ['考核','高质量'],
   fullYearBudget: ['是','否']
@@ -1753,6 +1753,29 @@ const STD_ASSESS_MAP = {
   '考核': ['仅考核指标','两者都是'],
   '高质量': ['仅高质量指标','两者都是']
 };
+/* 时间维度：查询枚举（2026-11-02 需求改版为本日发生数/本月发生数/本季累计数…）→ 数据源原始枚举匹配集合。
+   数据源沿用旧词（本月数/本季数/本年度），展示层再统一转成新词，保证历史数据仍能按新枚举检索命中 */
+const STD_TIME_DIM_MAP = {
+  '本日发生数': ['本日数','本日发生数'],
+  '本日末':     ['本日末'],
+  '本月发生数': ['本月数','本月发生数'],
+  '本月末':     ['本月末'],
+  '本季累计数': ['本季数','本季累计数'],
+  '本季末':     ['本季末'],
+  '本年累计数': ['本年累计数','本年度'],
+  '本年末':     ['本年末']
+};
+/* 时间维度数据原始值 → 新版显示词（详情/列表展示层） */
+const STD_TIME_DIM_DISP = {
+  '本日数': '本日发生数',
+  '本月数': '本月发生数',
+  '本季数': '本季累计数',
+  '本年度': '本年累计数'
+};
+function stdTimeDimDisp(v){
+  const s = String(v==null?'':v).trim();
+  return STD_TIME_DIM_DISP[s] || s;
+}
 /* 列表/详情显示值映射：仅考核指标→考核；仅高质量指标→高质量；两者都是→考核、高质量；
    两者都不是/空 → null（渲染为占位 --） */
 function stdAssessDisp(v){
@@ -1853,7 +1876,10 @@ function stdFiltered(){
     if(selNos && !selNos.has(it.no)) return false;
     if(a.bizUnit && String(it.bizUnit==null?'':it.bizUnit).trim()!==a.bizUnit) return false;
     if(a.freq.length && a.freq.indexOf(String(it.freq==null?'':it.freq).trim()) < 0) return false;
-    if(a.timeDim.length && a.timeDim.indexOf(String(it.timeDim==null?'':it.timeDim).trim()) < 0) return false;
+    if(a.timeDim.length){
+      const tv = String(it.timeDim==null?'':it.timeDim).trim();
+      if(!a.timeDim.some(k=>(STD_TIME_DIM_MAP[k]||[k]).indexOf(tv)>=0)) return false;
+    }
     if(a.assess.length){
       const av = String(it.assess==null?'':it.assess).trim();
       if(!a.assess.some(k=>(STD_ASSESS_MAP[k]||[k]).indexOf(av)>=0)) return false;
@@ -1977,7 +2003,7 @@ function renderStdResult(rows){
         + (stdIsEmpty(it.definition) ? '<td class="t-left"><span class="tag-none">—</span></td>'
             : '<td class="t-left" title="' + escHtml(it.definition) + '">' + stdMark(it.definition, kw) + '</td>')
         + (stdIsEmpty(it.freq) ? '<td><span class="tag-none">—</span></td>' : '<td>' + escHtml(it.freq) + '</td>')
-        + txt(it.timeDim)
+        + txt(stdTimeDimDisp(it.timeDim))
         + (stdIsEmpty(it.caliber) ? '<td><span class="tag-none">—</span></td>' : '<td>' + escHtml(it.caliber) + '</td>')
         + (stdIsEmpty(it.unit) ? '<td><span class="tag-none">—</span></td>' : '<td>' + escHtml(it.unit) + '</td>')
         + txt(stdSupplyDeptDisp(it.supplyDept))
@@ -2080,6 +2106,12 @@ function openStdDetail(no){
     /* 业务单元供数部门：显示值剔除「华润资产」前缀（2026-11-02 需求，与列表一致） */
     if(f.key==='supplyDept'){
       const dv = stdSupplyDeptDisp(it[f.key]);
+      if(stdIsEmpty(dv)) return '<tr>' + thHtml + '<td class="empty">—</td></tr>';
+      return '<tr>' + thHtml + '<td>' + escHtml(dv) + '</td></tr>';
+    }
+    /* 时间维度：原始值按新版枚举词展示（本月数 → 本月发生数；2026-11-02 需求，与列表/高级搜索一致） */
+    if(f.key==='timeDim'){
+      const dv = stdTimeDimDisp(it[f.key]);
       if(stdIsEmpty(dv)) return '<tr>' + thHtml + '<td class="empty">—</td></tr>';
       return '<tr>' + thHtml + '<td>' + escHtml(dv) + '</td></tr>';
     }
