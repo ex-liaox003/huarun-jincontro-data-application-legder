@@ -31,7 +31,7 @@ body{
 .header {
   position: sticky; top: 0; z-index: 100; background:#fff; height:72px;
   display:flex; align-items:center; justify-content:space-between;
-  padding:0 40px 0 24px; box-shadow:0 2px 6px rgba(0,0,0,0.04); overflow:hidden;
+  padding:0 40px 0 24px; box-shadow:0 2px 6px rgba(0,0,0,0.04);
 }
 .header-left { display:flex; align-items:center; gap:18px; flex-shrink:0; }
 .logo-block { display:flex; align-items:center; gap:10px; }
@@ -52,6 +52,36 @@ body{
 
 /* ===== 页面主体 ===== */
 .page{ width:100%; margin:22px auto 40px; padding:0 24px; }
+/* 预算填报二级子菜单（V1/V2 版本切换） */
+.submenu-bar{ background:#fff; border-bottom:1px solid #e6eaf0; box-shadow:0 1px 4px rgba(20,40,60,.04); padding:0 32px; display:flex; align-items:center; gap:2px; }
+.submenu-item{ padding:10px 20px; font-size:14px; color:#4a5568; cursor:pointer; border:none; background:none; font-family:inherit; border-bottom:2px solid transparent; transition:all .15s; }
+.submenu-item:hover{ color:#f5a623; }
+.submenu-item.active{ color:#f5a623; font-weight:600; border-bottom-color:#f5a623; }
+.submenu-empty{ width:100%; margin:22px auto 40px; padding:0 24px; }
+.submenu-empty .card{ padding:80px 24px; text-align:center; color:#9aa4b2; font-size:14px; }
+/* 顶部「预算填报」点击弹出子菜单（样式对齐参考图：面板紧贴导航条、左对齐、整行实色高亮；配色保持橙色主题） */
+.nav-drop{ position:relative; height:100%; display:flex; align-items:center; }
+.nav-chev{ font-size:10px; margin-left:5px; transition:transform .18s; }
+.nav-drop.open .nav-chev{ transform:rotate(180deg); }
+.nav-sub{
+  display:none; position:absolute; top:100%; left:0; min-width:220px;
+  background:linear-gradient(160deg,#e79b1f,#f5a623 55%,#f7b84e);
+  border-radius:0 0 10px 10px; padding:8px 8px 10px;
+  box-shadow:0 14px 34px rgba(180,110,10,.35); z-index:300;
+}
+.nav-drop.open .nav-sub{ display:block; animation:subIn .16s ease-out; }
+@keyframes subIn{ from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);} }
+.nav-sub-item{
+  display:block; width:100%; text-align:left;
+  padding:11px 16px; border:none; border-radius:6px; background:none; cursor:pointer;
+  font-size:14px; color:#fff; font-family:inherit; letter-spacing:.5px;
+  transition:background .14s; position:relative;
+}
+.nav-sub-item + .nav-sub-item{ margin-top:4px; }
+.nav-sub-item:hover{ background:rgba(255,255,255,.18); }
+.nav-sub-item.active{ background:rgba(255,255,255,.28); font-weight:600; }
+.nav-sub-item.active::after{ content:'✓'; margin-left:auto; font-size:12px; opacity:.8; }
+.nav-sub-cap{ display:block; font-size:10px; color:#b6bcc6; letter-spacing:2px; padding:5px 12px 7px; border-bottom:1px dashed #eef1f5; margin-bottom:5px; }
 .page-title-row{ display:flex; align-items:baseline; gap:12px; margin-bottom:14px; }
 .page-title{ font-size:20px; font-weight:700; color:#1f2937; }
 .page-title::before{ content:""; display:inline-block; width:4px; height:18px; background:var(--c-primary); border-radius:2px; margin-right:10px; vertical-align:-2px; }
@@ -232,6 +262,56 @@ td.code{ font-family:Consolas,"Courier New",monospace; color:#b0791a; }
 .toast.ok .t-ic{ background:#67c23a; }
 .toast.err{ background:#fdeeee; border:1px solid #f6d5d5; color:#d9534f; }
 .toast.err .t-ic{ background:#f56c6c; }
+
+/* ===== 预算填报 V2 版样式（2026-10-30 并入；全部限定 #viewV2 作用域，浅橙主题） ===== */
+#viewV2 .bud-inner{ width:100%; margin:0 auto; padding:0 24px; }
+#viewV2 .bud-toolbar{display:flex; align-items:center; gap:26px; background:#fff; border-radius:10px; padding:14px 20px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.08); flex-wrap:wrap;}
+#viewV2 .bud-field{display:flex; align-items:center; gap:10px;}
+#viewV2 .bud-field-label{font-size:13px; color:var(--c-text); font-weight:600; display:flex; align-items:center; gap:7px; white-space:nowrap;}
+#viewV2 .bud-field-label::before{content:''; width:3px; height:14px; border-radius:2px; background:var(--c-primary);}
+#viewV2 .bud-select{border:1px solid #d5dbe3; background:#fff; border-radius:8px; font-size:13.5px; color:var(--c-primary); font-weight:700; cursor:pointer; font-family:inherit; outline:none; padding:6px 12px; min-width:150px; transition:border-color .15s, box-shadow .15s;}
+#viewV2 .bud-select:hover,#viewV2 .bud-select:focus{border-color:var(--c-primary); box-shadow:0 0 0 2px rgba(245,166,35,.14);}
+#viewV2 .bud-select:disabled{color:#8a94a0; background:#f6f7f9; cursor:not-allowed; border-color:#e3e7ec; box-shadow:none;}
+#viewV2 .bud-mode{margin-left:auto; font-size:12px; color:#9aa3ad; background:#f6f7f9; border-radius:999px; padding:5px 14px;}
+#viewV2 .bud-mode.edit{color:#b97708; background:#fff4dd; font-weight:600;}
+#viewV2 .panel-header{background:#fff; border-radius:10px; padding:16px 20px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.08); display:flex; justify-content:space-between; align-items:center;}
+#viewV2 .panel-title{font-size:16px; font-weight:700; color:var(--c-accent);}
+#viewV2 .panel-actions{display:flex; gap:8px; align-items:center;}
+#viewV2 .panel-actions .btn{border:1px solid var(--c-border); color:var(--c-text); height:34px; font-size:13px; padding:0 14px;}
+#viewV2 .panel-actions .btn:hover{border-color:var(--c-primary); color:var(--c-accent); background:#fff8e6;}
+#viewV2 .table-card{background:#fff; border-radius:10px; padding:16px; box-shadow:0 1px 3px rgba(0,0,0,0.08); overflow:hidden;}
+#viewV2 .table-card .table-wrap{overflow-x:auto; max-height:600px; overflow-y:auto;}
+#viewV2 .data-table{width:100%; border-collapse:collapse; font-size:12.5px; min-width:900px;}
+#viewV2 .data-table thead{position:sticky; top:0; z-index:5; background:linear-gradient(135deg,var(--c-primary),var(--c-primary-light)); color:#fff;}
+#viewV2 .data-table th{padding:8px 10px; text-align:center; font-weight:600; font-size:12.5px; white-space:nowrap; border:1px solid rgba(255,255,255,0.25);}
+#viewV2 .data-table td{padding:7px 10px; text-align:center; border:1px solid var(--c-border); white-space:nowrap;}
+#viewV2 .data-table tbody tr:nth-child(even){background:#f8f9fb;}
+#viewV2 .data-table tbody tr:hover{background:#fff8e6;}
+#viewV2 .data-table td.indicator-name{font-weight:500; color:var(--c-text); text-align:left; padding-left:12px;}
+#viewV2 .data-table td.indicator-name.lv0{font-weight:600;}
+#viewV2 .data-table td.value{font-family:"Courier New",monospace; font-weight:600;}
+#viewV2 .bud-table th.bud-hei{color:#fff; font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;}
+#viewV2 .bud-table th.bud-req{color:#fff; font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;}
+#viewV2 .bud-req-star{color:#ffd54d; font-weight:700;}
+#viewV2 .bud-table td.bud-must{background:#fffbef; font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;}
+#viewV2 .bud-table td.bud-must.ro{background:#fafbfc; font-family:inherit;}
+#viewV2 .bud-must .bud-input-wrap{display:flex; flex-direction:column; align-items:stretch;}
+#viewV2 .bud-input{width:130px; border:1.5px solid var(--c-border); border-radius:6px; padding:5px 8px; font-size:13px; font-family:inherit; text-align:right; color:var(--c-text); transition:border-color .15s, box-shadow .15s;}
+#viewV2 .bud-input:hover{border-color:var(--c-primary);}
+#viewV2 .bud-input:focus{outline:none; border-color:var(--c-primary); box-shadow:0 0 0 3px rgba(245,166,35,.15);}
+#viewV2 .bud-input.filled{border-color:var(--c-success); background:#f4fbf7;}
+#viewV2 .bud-input.ro{border-color:transparent; background:transparent; box-shadow:none; color:var(--c-text); pointer-events:none;}
+#viewV2 .bud-input.ro.filled{border-color:transparent; background:transparent;}
+#viewV2 .bud-input.bud-err{border-color:#e74c3c; background:#fdf3f2; box-shadow:0 0 0 2px rgba(231,76,60,.12);}
+#viewV2 .bud-err-tip{font-size:11px; color:#e74c3c; margin-top:4px; font-family:inherit; text-align:left; white-space:nowrap;}
+#viewV2 .bud-auto{font-weight:600; color:var(--c-accent); font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;}
+#viewV2 .bud-empty-tip{padding:36px 16px; text-align:center; color:#9aa3ad; font-size:13px;}
+#viewV2 .dim-dash{color:#6f7b88; font-weight:700; font-style:normal; font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif; letter-spacing:2px;}
+#viewV2 .bud-note{background:linear-gradient(180deg,#fff8ec,#fdf1da); border:1px solid #f0ddb4; border-radius:10px; padding:13px 18px; margin-top:12px; font-size:12.5px; color:var(--c-text-light); line-height:1.9;}
+#viewV2 .bud-note p{margin:0;}
+#viewV2 .bud-note p + p{margin-top:4px;}
+#viewV2 .bud-note b{color:var(--c-text);}
+#viewV2 .bud-note-star{color:#c0392b; font-weight:700;}
 </style>
 </head>
 <body>
@@ -248,7 +328,13 @@ td.code{ font-family:Consolas,"Courier New",monospace; color:#b0791a; }
   <div class="header-nav">
     <a class="nav-item" href="通用报送管理系统-导航.html">首页</a>
     <a class="nav-item" href="指标查询.html">指标查询</a>
-    <div class="nav-item active">预算填报</div>
+    <div class="nav-item nav-drop active" id="budgetDrop" onclick="BudgetVer.toggleDrop(event)">预算填报<span class="nav-chev">▼</span>
+      <div class="nav-sub">
+        <span class="nav-sub-cap">版本切换</span>
+        <button type="button" class="nav-sub-item active" data-ver="v1" onclick="BudgetVer.switchTo('v1',this)">预算填报V1版本</button>
+        <button type="button" class="nav-sub-item" data-ver="v2" onclick="BudgetVer.switchTo('v2',this)">预算填报V2版本</button>
+      </div>
+    </div>
     <a class="nav-item" href="指标管理.html">指标管理</a>
     <div class="nav-item">报送管理</div>
     <div class="nav-item">任务管理</div>
@@ -267,7 +353,8 @@ td.code{ font-family:Consolas,"Courier New",monospace; color:#b0791a; }
   </div>
 </div>
 
-<div class="page">
+<!-- 子菜单视图：V1 = 当前预算填报页面 -->
+<div class="page" id="viewV1">
 
   <!-- 工具条：新增 ｜ 下载模板 -->
   <div class="toolbar">
@@ -302,6 +389,12 @@ td.code{ font-family:Consolas,"Courier New",monospace; color:#b0791a; }
       </table>
     </div>
   </div>
+</div>
+
+<!-- 子菜单视图：V2（待开发，暂不显示内容） -->
+<!-- 子菜单视图：V2（并入自 预算填报V2版本.html；无侧栏菜单，仅预算填报面板） -->
+<div class="page" id="viewV2" style="display:none">
+  <div class="bud-inner"><div id="budRoot"></div></div>
 </div>
 
 <!-- 弹框：新增预算填报（年份 + 业务单元 + 内联上传模板） -->
@@ -373,6 +466,36 @@ td.code{ font-family:Consolas,"Courier New",monospace; color:#b0791a; }
 </div>
 
 <div class="toast" id="toast"></div>
+
+<script>
+/* ===== 预算填报 二级子菜单：V1 / V2 版本切换 =====
+   V1 = 当前预算填报页面（记录列表 + 新增 + 上传 + 预览 + 删除）
+   V2 = 预算值填报页（并入自 预算填报V2版本.html，2026-10-30） */
+var BudgetVer = {
+  current: 'v1',
+  toggleDrop: function(e){
+    e.stopPropagation();
+    document.getElementById('budgetDrop').classList.toggle('open');
+  },
+  switchTo: function(ver, el){
+    if(window.event) window.event.stopPropagation();
+    this.current = ver;
+    var v1 = document.getElementById('viewV1'), v2 = document.getElementById('viewV2');
+    if(v1) v1.style.display = ver === 'v1' ? '' : 'none';
+    if(v2) v2.style.display = ver === 'v2' ? '' : 'none';
+    var drop = document.getElementById('budgetDrop');
+    if(drop){
+      drop.querySelectorAll('.nav-sub-item').forEach(function(b){ b.classList.toggle('active', b === el); });
+      drop.classList.remove('open');
+    }
+  }
+};
+/* 点击页面其它位置收起子菜单 */
+document.addEventListener('click', function(e){
+  var drop = document.getElementById('budgetDrop');
+  if(drop && !e.target.closest('#budgetDrop')) drop.classList.remove('open');
+});
+</script>
 
 <script>
 var STD_ENUM = {bizUnit: ['华润金融','华润银行','华润信托','华润租赁','华润保险','华润资产','华润深国投']};
@@ -789,6 +912,419 @@ $('pvDl').addEventListener('click', function(){
 $('upBanner').addEventListener('click', function(e){
   if(e.target.closest('.banner-dl')) downloadErrFile();
 });
+</script>
+<!-- 预算填报 V2 数据源：指标标准库 5 公司报表（与金控指标体系数据应用平台同源文件） -->
+<script src="sheets_data.js"></script>
+<script src="asset_sheets_data.js"></script>
+<script src="trust_sheets_data.js"></script>
+<script src="insurance_sheets_data.js"></script>
+<script src="lease_sheets_data.js"></script>
+<script>
+/* ===== 预算填报 V2 版（并入自 预算填报V2版本.html；2026-10-30 适配：去侧栏菜单、budRoot 挂载、浅橙主题、IIFE 隔离、事件限定 #viewV2） ===== */
+(function(){
+/* ===== 业务单元常量与页面状态（与 index.html 同源） ===== */
+const BUDGET_UNITS = [
+  {key:'bank',  label:'华润银行', codePrefix:'STR_CRB', src:()=> (typeof SHEETS!=='undefined'?SHEETS:null)},
+  {key:'asset', label:'华润资产', codePrefix:'STR_CRA', src:()=> (typeof ASSET_SHEETS!=='undefined'?ASSET_SHEETS:null)},
+  {key:'trust', label:'华润信托', codePrefix:'STR_CRT', src:()=> (typeof TRUST_SHEETS!=='undefined'?TRUST_SHEETS:null)},
+  {key:'ins',   label:'华润保险', codePrefix:'STR_CRI', src:()=> (typeof INSURANCE_SHEETS!=='undefined'?INSURANCE_SHEETS:null)},
+  {key:'lease', label:'华润租赁', codePrefix:'STR_CRL', src:()=> (typeof LEASE_SHEETS!=='undefined'?LEASE_SHEETS:null)}
+];
+const budState = { year: 2027, unit: 'bank', vals: {}, editing: false, showErr: false }; // vals: 'year|unit|指标名称' → 填报值（会话内暂存草稿）；editing: 是否可填写；showErr: 提交校验未过红框提示
+
+const BUDGET_KEY = 'bud-fill';
+
+
+/* ===== 依赖函数（抽取自 index.html，逻辑零改动） ===== */
+function menuName(s){
+  return s.name.replace(/[(（]\s*\d+\s*个\s*[)）]\s*$/, '').trim();
+}
+
+function panelName(s){
+  return menuName(s).replace(/^\d+\s*[-—－.、:：]\s*/, '').trim();
+}
+
+function hideColsView(s, hideCols, src){
+  const base = src || s;
+  const row1 = s.headers[0], row2 = s.headers[1] || [];
+  const leaves = []; let j = 0;
+  row1.forEach(h=>{
+    const c = h.c || 1, r = h.r || 1;
+    for(let k=0;k<c;k++){
+      if(r > 1){ leaves.push({group:h.l, label:h.l, r:r}); }
+      else { leaves.push({group:h.l, label:(row2[j] ? row2[j].l : h.l), r:1}); j++; }
+    }
+  });
+  const hidden = [];
+  leaves.forEach((L,i)=>{
+    const key = (L.r > 1) ? L.group : (L.group + '/' + L.label);
+    if(hideCols.indexOf(key) >= 0) hidden.push(i);
+  });
+  if(!hidden.length) return {headers:s.headers, rows:base.rows, levels:base.levels, spans:base.spans};
+  const keep = leaves.filter((L,i)=>hidden.indexOf(i) < 0);
+  const h1 = [], h2 = [];
+  let i = 0;
+  while(i < keep.length){
+    const L = keep[i];
+    if(L.r > 1){ h1.push({l:L.group, r:L.r}); i++; continue; }
+    let e = i;
+    while(e < keep.length && keep[e].r <= 1 && keep[e].group === L.group) e++;
+    h1.push({l:L.group, c:e - i});
+    for(let k=i;k<e;k++) h2.push({l:keep[k].label});
+    i = e;
+  }
+  const rows = (base.rows || []).map(r=>r.filter((v,idx)=>hidden.indexOf(idx) < 0));
+  let spans = base.spans;
+  if(spans){
+    spans = spans.map(sp=>Object.assign({}, sp, {col: sp.col - hidden.filter(h=>h < sp.col).length}));
+  }
+  return {headers:[h1,h2], rows:rows, levels:base.levels, spans:spans};
+}
+
+function ledgerBaseView(s, ci){
+  if(s.calibers && s.calibers.length){
+    const c = s.calibers[ci||0] || s.calibers[0];
+    const hide = (s.hideCols||[]).concat(c.hideCols||[]);
+    return hide.length ? hideColsView(s, hide, c) : {headers:s.headers, rows:c.rows, levels:c.levels, spans:c.spans};
+  }
+  return s.hideCols ? hideColsView(s, s.hideCols) : s;
+}
+
+function ledgerLeaves(view){
+  const row1 = view.headers[0], row2 = view.headers[1] || [];
+  const cols = [];
+  let j = 0;
+  row1.forEach(h=>{
+    const c = h.c||1, r = h.r||1;
+    for(let k=0;k<c;k++){
+      cols.push({group:h.l, label:(r>1 ? h.l : (row2[j] ? row2[j].l : h.l))});
+      if(r <= 1) j++;
+    }
+  });
+  return cols;
+}
+
+function budLatestDate(){
+  const d = new Date();
+  const last = new Date(d.getFullYear(), d.getMonth(), 0); // 本月第 0 天 = 上月末
+  const p = n => (n < 10 ? '0' + n : '' + n);
+  return last.getFullYear() + '-' + p(last.getMonth() + 1) + '-' + p(last.getDate());
+}
+
+function budIndicatorRows(unit){
+  const u = BUDGET_UNITS.find(x => x.key === unit);
+  const col = u ? u.src() : null;
+  if(!col) return [];
+  const out = []; const seen = {};
+  Object.keys(col).forEach(sk=>{
+    const s = col[sk];
+    const view = ledgerBaseView(s, 0);
+    const leaves = ledgerLeaves(view);
+    const idx = lab => leaves.findIndex(L => L.label === lab);
+    const nameI = idx('指标名称'), unitI = idx('单位'), tagI = idx('指标属性标签');
+    let actI = leaves.findIndex(L => L.label === '实际' && /截止/.test(L.group));
+    if(actI < 0) actI = leaves.findIndex(L => L.label === '实际');
+    if(nameI < 0 || tagI < 0) return;
+    (view.rows || []).forEach(r=>{
+      const nm = String(r[nameI] == null ? '' : r[nameI]).trim();
+      if(!nm) return;
+      const tag = String(r[tagI] == null ? '' : r[tagI]);
+      if(tag.indexOf('★') < 0 && tag !== '是') return;   // 【是否预算】筛选
+      if(seen[nm]) return; seen[nm] = 1;                  // 单元内去重
+      out.push({
+        sheet: s.title || panelName(s),
+        name: nm.replace(/^其中：/, ''),
+        rawName: nm,
+        unit: unitI >= 0 ? (r[unitI] || '') : '',
+        latest: actI >= 0 ? String(r[actI] == null ? '' : r[actI]).trim() : ''
+      });
+    });
+  });
+  /* 指标标准编号：单元前缀 + 按加载顺序编号（原型演示；实际环境对接指标清单唯一标准编号） */
+  out.forEach((it, i)=>{ it.code = u.codePrefix + '_' + String(i + 1).padStart(8, '0'); });
+  return out;
+}
+
+function renderBudgetPanel(){
+  const content = document.getElementById('budRoot');
+  let panel = document.getElementById('panel-' + BUDGET_KEY);
+  const existed = !!panel && !!panel.parentNode;
+  const wasActive = existed && panel.classList.contains('active');
+  if(!panel) panel = document.createElement('div');
+  panel.className = 'sheet-panel';
+  panel.id = 'panel-' + BUDGET_KEY;
+
+  const y = budState.year, lastY = y - 1;
+  const unitLabel = (BUDGET_UNITS.find(x=>x.key===budState.unit) || BUDGET_UNITS[0]).label;
+  const rows = budIndicatorRows(budState.unit);
+  const latestDate = budLatestDate();
+
+  const curY = new Date().getFullYear();
+  const yList = [];
+  for(let yy = 2025; yy <= curY + 1; yy++) yList.push(yy);
+  if(yList.indexOf(y) < 0) yList.push(y);   // 保证已选年度始终在选项中
+  yList.sort((a,b)=>b-a);   // 倒序展示：最新年度在最前
+  const yOpts = yList.map(yy => `<option value="${yy}"${yy===y?' selected':''}>${yy} 年</option>`).join('');
+  const uOpts = BUDGET_UNITS.map(u => `<option value="${u.key}"${u.key===budState.unit?' selected':''}>${u.label}</option>`).join('');
+
+  const editing = !!budState.editing;
+
+  let html = `
+    <div class="panel-header">
+      <div class="panel-title">预算指标填报表 · ${unitLabel}</div>
+      <div class="panel-actions">
+        ${editing
+          ? `<button class="btn" data-action="bud-edit" type="button">🖊 编辑中 · 完成</button>`
+          : `<button class="btn" data-action="bud-edit" type="button">🖊 编辑</button>`}
+        <button class="btn" data-action="bud-submit" type="button">✅ 提交</button>
+        <button class="btn" data-action="bud-import" type="button" title="从 Excel/CSV 模板导入：按「指标名称」列匹配填充本年预算值">📤 导入</button>
+        <input type="file" id="budImportFile" accept=".xlsx,.xls,.csv" style="display:none">
+        <button class="btn" data-action="export" data-key="${BUDGET_KEY}" type="button">📥 导出</button>
+      </div>
+    </div>
+    <div class="bud-toolbar">
+      <div class="bud-field"><span class="bud-field-label">业务单元选择</span>
+        <select class="bud-select" id="budUnitSel"${editing?' disabled':''}>${uOpts}</select></div>
+      <div class="bud-field"><span class="bud-field-label">预算年度选择</span>
+        <select class="bud-select" id="budYearSel"${editing?' disabled':''}>${yOpts}</select></div>
+      <div class="bud-mode${editing?' edit':''}">${editing?'✏️ 编辑中（可填写全年预算值）':'👁 仅查看 · 点击「编辑」后可填写'}</div>
+    </div>
+    <div class="table-card"><div class="table-wrap">
+    <table class="data-table bud-table"><thead><tr>
+        <th>业务单元</th><th>指标标准编号</th><th>指标名称</th><th>指标单位</th>
+        <th>${lastY} 年预算值</th><th>最新实际值</th><th class="bud-req bud-hei">最新实际值日期</th>
+        <th class="bud-req"><span class="bud-req-star">*</span>${y} 年预算值</th>
+      </tr></thead>`;
+
+  if(!rows.length){
+    html += `<tbody><tr><td colspan="8"><div class="bud-empty-tip">未查询到匹配的数据，请先在指标标准库中去维护"是否有全年预算"值</div></td></tr>`;
+  } else {
+    html += `<tbody>`;
+    rows.forEach(it=>{
+      const dk = y + '|' + budState.unit + '|' + it.rawName;
+      const v = budState.vals[dk] || '';
+      const err = !!budState.showErr && v === '';
+      /* 上一年预算值：指标标准库无历史预算数据，统一以 -- 占位展示 */
+      const lastBud = '<span class="dim-dash">--</span>';
+      const latest = (it.latest && it.latest !== '-') ? it.latest : '<span class="dim-dash">--</span>';
+      html += `<tr>
+        <td>${unitLabel}</td>
+        <td><span class="bud-auto">${it.code}</span></td>
+        <td class="indicator-name lv0" title="${escHtml(it.rawName)}">${escHtml(it.name)}</td>
+        <td class="value">${escHtml(it.unit)}</td>
+        <td class="value">${lastBud}</td>
+        <td class="value">${latest}</td>
+        <td class="value">${latestDate}</td>
+        <td class="bud-must${editing?'':' ro'}"><div class="bud-input-wrap"><input class="bud-input${v ? ' filled' : ''}${editing?'':' ro'}${err?' bud-err':''}" data-budkey="${escHtml(dk)}" value="${escHtml(v)}" placeholder="${editing?'必填，全年预算值':''}" inputmode="decimal" ${editing?'':'readonly tabindex="-1"'} aria-label="${escHtml(it.name)} ${y} 年预算值">${err?'<div class="bud-err-tip">请输入预算值</div>':''}</div></td>
+      </tr>`;
+    });
+  }
+  html += `</tbody></table>
+    </div></div>
+    <div class="bud-note">
+      <p><b>填报说明：</b>各业务单元负责人负责填报所属业务单元预算指标的 <b>X年全年预算值</b>（标 <span class="bud-note-star">*</span> 列为必填项）；X-1 年预算值、最新实际值由系统自动加载（有数据时展示）。</p>
+      <p><b>注：</b>若存在需填报全年预算的指标，但未在本页面展示，请先联系开发人员，在指标标准库中将该指标的【是否有全年预算】字段维护为 "是"。</p>
+    </div>`;
+
+  panel.innerHTML = html;
+  if(!existed) content.appendChild(panel);
+  if(wasActive) panel.classList.add('active');
+}
+
+function budgetCollectInputs(){
+  const panel = document.getElementById('panel-' + BUDGET_KEY);
+  if(!panel) return;
+  panel.querySelectorAll('input.bud-input').forEach(inp=>{
+    budState.vals[inp.dataset.budkey] = inp.value.trim();
+  });
+}
+
+function budgetToggleEdit(){
+  budgetCollectInputs();
+  budState.editing = !budState.editing;
+  renderBudgetPanel();
+  if(budState.editing){
+    const f = document.querySelector('#panel-' + BUDGET_KEY + ' input.bud-input');
+    if(f) f.focus();
+  }
+}
+
+function budgetSubmit(){
+  budgetCollectInputs();
+  const rows = budIndicatorRows(budState.unit);
+  const missing = rows.filter(it => (budState.vals[budState.year + '|' + budState.unit + '|' + it.rawName] || '') === '');
+  if(missing.length){
+    budState.showErr = true;
+    budState.editing = true;   // 校验未过 → 进入编辑态，红框可直接补填
+    renderBudgetPanel();
+    showToast(`提交失败：还有 ${missing.length} 项「*${budState.year} 年预算值」未填报（必填）`);
+    return;
+  }
+  budState.showErr = false;
+  budState.editing = false;
+  renderBudgetPanel();
+  showToast('提交成功');
+}
+
+function loadSheetJS(){
+  return new Promise((resolve, reject)=>{
+    if(window.XLSX){ resolve(window.XLSX); return; }
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    sc.onload = ()=> resolve(window.XLSX);
+    sc.onerror = ()=> reject(new Error('Excel 解析组件加载失败（需联网）'));
+    document.head.appendChild(sc);
+  });
+}
+
+function parseCsv(text){
+  text = text.replace(/^\uFEFF/, '');
+  const rows = []; let row = [], cell = '', q = false;
+  const delim = (text.indexOf('\t') > -1 && text.indexOf(',') < 0) ? '\t' : ',';
+  for(let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if(q){
+      if(ch === '"'){ if(text[i+1] === '"'){ cell += '"'; i++; } else q = false; }
+      else cell += ch;
+    } else {
+      if(ch === '"') q = true;
+      else if(ch === delim){ row.push(cell); cell = ''; }
+      else if(ch === '\n'){ row.push(cell); rows.push(row); row = []; cell = ''; }
+      else if(ch !== '\r') cell += ch;
+    }
+  }
+  if(cell !== '' || row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(c => String(c).trim() !== ''));
+}
+
+function budHandleImportFile(file){
+  const reader = new FileReader();
+  reader.onerror = ()=> showToast('导入失败：文件读取错误');
+  if(/\.(csv|txt)$/i.test(file.name)){
+    reader.onload = e => budImportApply(parseCsv(String(e.target.result)));
+    reader.readAsText(file, 'utf-8');
+  } else {
+    reader.onload = e => {
+      loadSheetJS().then(XLSX => {
+        try {
+          const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          budImportApply(XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false }));
+        } catch(err){ showToast('导入失败：无法解析 Excel 文件'); }
+      }).catch(err => showToast('导入失败：' + err.message));
+    };
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+function budImportApply(rows){
+  budgetCollectInputs();          // 先暂存页面已填写内容，导入结果叠加其上
+  const y = budState.year;
+  const items = budIndicatorRows(budState.unit);
+  const norm = s => String(s == null ? '' : s).replace(/\s/g, '');
+  /* 定位表头行：含「指标名称」的行；再定位名称列与预算值列（优先「{年份}...预算值」） */
+  let headI = -1, nameI = -1, valI = -1;
+  for(let i = 0; i < Math.min(rows.length, 20); i++){
+    const r = rows[i].map(norm);
+    const ni = r.findIndex(c => c.indexOf('指标名称') > -1);
+    if(ni < 0) continue;
+    let vi = r.findIndex(c => c.indexOf(String(y)) > -1 && c.indexOf('预算值') > -1);
+    if(vi < 0) vi = r.findIndex(c => c.indexOf('预算值') > -1 && c.indexOf('去年') < 0 && c.indexOf('同比') < 0);
+    if(vi < 0) continue;
+    headI = i; nameI = ni; valI = vi; break;
+  }
+  if(headI < 0){
+    showToast('导入失败：未找到含「指标名称」与「' + y + '年预算值」的表头（请核对模板）');
+    return;
+  }
+  const byName = {};
+  items.forEach(it => { byName[norm(it.rawName)] = it; byName[norm(it.name)] = it; });
+  let filled = 0, unknown = 0;
+  for(let i = headI + 1; i < rows.length; i++){
+    const r = rows[i]; if(!r) continue;
+    const nm = norm(r[nameI]); if(!nm) continue;
+    const it = byName[nm]; if(!it){ unknown++; continue; }
+    const v = String(r[valI] == null ? '' : r[valI]).trim();
+    if(v === '') continue;
+    budState.vals[y + '|' + budState.unit + '|' + it.rawName] = v;
+    filled++;
+  }
+  if(!filled){
+    showToast('导入完成：文件中的指标名称与「' + (BUDGET_UNITS.find(x=>x.key===budState.unit)||{}).label + '」指标清单未匹配到任何行');
+    return;
+  }
+  budState.editing = true;        // 导入后进入编辑态便于核对补填
+  budState.showErr = false;
+  renderBudgetPanel();
+  showToast('导入成功：已按「指标名称」匹配填充 ' + filled + ' 项 ' + y + ' 年预算值' + (unknown ? '（' + unknown + ' 行名称不在本单元清单，已跳过）' : ''));
+}
+
+function showToast(msg){ toast(msg, /失败/.test(msg) ? 'err' : 'ok'); }
+
+function escHtml(str){
+  return String(str==null?'':str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+
+/* ===== 输入过滤（抽取自 index.html 原监听） ===== */
+document.getElementById('budRoot').addEventListener('input', e=>{
+  const inp = e.target;
+  if(!inp.classList || !inp.classList.contains('bud-input')) return;
+  let v = inp.value.replace(/[^\d.]/g, '');           // 剔除非数值字符
+  const dot = v.indexOf('.');
+  if(dot >= 0) v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '');  // 仅保留一个小数点
+  if(v !== inp.value) inp.value = v;
+  if(inp.classList.contains('bud-err') && inp.value !== ''){
+    inp.classList.remove('bud-err');
+    const tip = inp.parentNode && inp.parentNode.querySelector('.bud-err-tip');
+    if(tip) tip.remove();
+  }
+});
+
+
+/* ===== 点击分发：预算页全部动作（编辑/提交/导入/导出/菜单激活） ===== */
+document.getElementById('budRoot').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-action]');
+  if(!btn) return;
+  const action = btn.dataset.action;
+  if(action === 'nav-sheet'){
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active', b === btn));
+    const panel = document.getElementById('panel-' + BUDGET_KEY);
+    if(panel) panel.classList.add('active');
+  }
+  else if(action === 'bud-edit'){ budgetToggleEdit(); }
+  else if(action === 'bud-submit'){ budgetSubmit(); }
+  else if(action === 'bud-import'){ budgetCollectInputs(); document.getElementById('budImportFile').click(); }
+  else if(action === 'export' && btn.dataset.key === BUDGET_KEY){
+    alert('正在导出 预算指标填报表...\n（演示功能，实际环境对接导出接口）');
+  }
+});
+
+/* ===== 下拉/文件监听：预算年度、业务单元切换 + 导入文件选择 ===== */
+document.getElementById('budRoot').addEventListener('change', (e)=>{
+  const t = e.target;
+  if(t.id === 'budImportFile'){
+    const f = t.files && t.files[0];
+    t.value = '';
+    if(f) budHandleImportFile(f);
+    return;
+  }
+  if(t.id === 'budYearSel' || t.id === 'budUnitSel'){
+    budgetCollectInputs();
+    budState.year = +document.getElementById('budYearSel').value;
+    budState.unit = document.getElementById('budUnitSel').value;
+    budState.editing = false;
+    budState.showErr = false;
+    renderBudgetPanel();
+    return;
+  }
+});
+
+
+renderBudgetPanel();
+(function(){ const panel=document.getElementById('panel-'+BUDGET_KEY); if(panel) panel.classList.add('active'); })();
+
+})();
 </script>
 </body>
 </html>

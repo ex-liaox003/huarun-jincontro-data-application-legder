@@ -1597,15 +1597,20 @@ function stdRenderMsPop(key){
   let opts = stdMsOptions(key);
   let searchHtml = '';
   if(key === 'supplyDept'){
-    /* 模糊搜索（2026-10-28 需求）：弹层顶部输入框，输入即过滤部门选项（不区分大小写子串匹配） */
+    /* 模糊搜索（2026-10-28 需求）：弹层顶部输入框，输入即过滤部门选项（不区分大小写子串匹配）；
+       2026-11-02 选项显示剔除「华润资产」前缀后，按原始值或显示值任一命中 */
     const kw = (stdMsSearch.supplyDept || '').trim().toLowerCase();
-    if(kw) opts = opts.filter(v=>String(v).toLowerCase().indexOf(kw) >= 0);
+    if(kw) opts = opts.filter(v=>String(v).toLowerCase().indexOf(kw) >= 0
+      || stdSupplyDeptDisp(v).toLowerCase().indexOf(kw) >= 0);
     searchHtml = '<div class="std-ms-search"><input type="text" id="stdMsSearch-' + key + '" placeholder="输入关键字模糊搜索" autocomplete="off" value="' + escHtml(stdMsSearch.supplyDept || '') + '"></div>';
   }
   pop.innerHTML = searchHtml + (opts.map(v=>{
     const on = arr.indexOf(v) >= 0;
+    /* 供数部门选项：显示剔除「华润资产」前缀的部门名（2026-11-02 需求）；
+       data-val 保持原始值，勾选与筛选匹配逻辑不变；纯「华润资产」值显示回退原文避免空标签 */
+    const lb = key==='supplyDept' ? (stdSupplyDeptDisp(v) || v) : v;
     return '<div class="std-ms-row"><input type="checkbox" class="std-tree-cb" data-action="std-ms-check" data-ms="' + key + '" data-val="' + escHtml(v) + '"' + (on?' checked':'') + '>'
-      + '<span class="std-tree-lb" data-action="std-ms-flip" data-ms="' + key + '" data-val="' + escHtml(v) + '">' + escHtml(v) + '</span></div>';
+      + '<span class="std-tree-lb" data-action="std-ms-flip" data-ms="' + key + '" data-val="' + escHtml(v) + '">' + escHtml(lb) + '</span></div>';
   }).join('') || '<div class="std-ms-empty">' + (key==='supplyDept' && (stdMsSearch.supplyDept||'').trim() ? '未找到匹配部门' : '暂无可选项') + '</div>');
   if(key === 'supplyDept' && focused){
     const el = document.getElementById('stdMsSearch-' + key);
@@ -1756,6 +1761,24 @@ function stdAssessDisp(v){
   if(s==='仅高质量指标') return '高质量';
   if(s==='两者都是') return '考核、高质量';
   return null;
+}
+/* 业务单元供数部门显示值（2026-11-02 需求）：值以「华润资产」开头时剔除前缀，只保留部门名
+   （华润资产财务部 → 财务部）；仅影响列表/详情展示，检索与筛选仍按原始值 */
+function stdSupplyDeptDisp(v){
+  const s = String(v==null?'':v).trim();
+  return s.indexOf('华润资产')===0 ? s.slice(4) : s;
+}
+/* 详情多值字段显示（2026-11-02 需求）：字段含多个值时统一用中文逗号分隔
+   （指标责任人「余甜,唐颖」→「余甜，唐颖」；指标来源系统「合并系统,手工调整」→「合并系统，手工调整」）
+   仅做分隔符规范化：半角逗号/分号 + 可选空白 → 中文逗号；不拆行、不改内容，检索与数据原始值不受影响 */
+function stdMultiValDisp(v){
+  return String(v==null?'':v).replace(/\s*([,;；])\s*/g, function(m0, sep, off, s){
+    /* 千分位保护：前后均为数字的半角逗号（如 1,000,000）不转换 */
+    const before = s.slice(0, off).replace(/\s+$/, '').slice(-1);
+    const after = s.slice(off + m0.length).replace(/^\s+/, '').slice(0, 1);
+    if(sep === ',' && /\d/.test(before) && /\d/.test(after)) return m0;
+    return '，';
+  });
 }
 
 // 业务单元 → 指标口径 关联枚举（选择业务单元后方可选择指标口径）
@@ -1957,7 +1980,7 @@ function renderStdResult(rows){
         + txt(it.timeDim)
         + (stdIsEmpty(it.caliber) ? '<td><span class="tag-none">—</span></td>' : '<td>' + escHtml(it.caliber) + '</td>')
         + (stdIsEmpty(it.unit) ? '<td><span class="tag-none">—</span></td>' : '<td>' + escHtml(it.unit) + '</td>')
-        + txt(it.supplyDept)
+        + txt(stdSupplyDeptDisp(it.supplyDept))
         + (()=>{ /* 指标属性标签：考核蓝标 / 高质量绿标；两者都是=双标签同行展示；两者都不是=— */
             const a = stdAssessDisp(it.assess);
             if(!a) return '<td class="t-nowrap"><span class="tag-none">—</span></td>';
@@ -2054,10 +2077,16 @@ function openStdDetail(no){
       if(v!=='是' && v!=='否') return '<tr>' + thHtml + '<td class="empty">—</td></tr>';
       return '<tr>' + thHtml + '<td><span class="budget-tag' + (v==='是' ? ' yes' : '') + '">' + escHtml(v) + '</span></td></tr>';
     }
+    /* 业务单元供数部门：显示值剔除「华润资产」前缀（2026-11-02 需求，与列表一致） */
+    if(f.key==='supplyDept'){
+      const dv = stdSupplyDeptDisp(it[f.key]);
+      if(stdIsEmpty(dv)) return '<tr>' + thHtml + '<td class="empty">—</td></tr>';
+      return '<tr>' + thHtml + '<td>' + escHtml(dv) + '</td></tr>';
+    }
     const v = it[f.key];
     const empty = stdIsEmpty(v);
     return '<tr>' + thHtml
-      + '<td class="' + (empty?'empty':'') + '">' + (empty ? '—' : escHtml(v)) + '</td></tr>';
+      + '<td class="' + (empty?'empty':'') + '">' + (empty ? '—' : escHtml(stdMultiValDisp(v))) + '</td></tr>';
   }).join('');
   /* 业务/技术/管理属性：3 个 tab 页签切换查看（基础信息字段已并入业务属性，无独立分区） */
   const tabGroups = m.groups.filter(g=>g.key!=='basic');

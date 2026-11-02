@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>预算值填报 · 金控指标体系数据应用平台</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root{
+  --c-primary:#1a3a6b;
+  --c-primary-light:#2a5298;
+  --c-accent:#c8962e;
+  --c-accent-light:#e0b35a;
+  --c-bg:#f0f2f5;
+  --c-card:#ffffff;
+  --c-text:#1f2937;
+  --c-text-light:#6b7280;
+  --c-border:#e5e7eb;
+  --c-success:#10b981;
+  --c-warning:#f59e0b;
+  --c-danger:#ef4444;
+  --c-info:#3b82f6;
+}
+body{
+  font-family:"Microsoft YaHei","PingFang SC","Helvetica Neue",Arial,sans-serif;
+  background:var(--c-bg);
+  color:var(--c-text);
+  font-size:14px;
+  line-height:1.6;
+}
+
+/* ===== Header ===== */
+.header{
+  background:linear-gradient(135deg,#0f2847 0%,#1a3a6b 50%,#2a5298 100%);
+  color:#fff;
+  padding:10px 32px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  position:sticky; top:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.header-left{display:flex; align-items:center; gap:12px;}
+.header-logo{
+  width:34px; height:34px;
+  background:linear-gradient(135deg,var(--c-accent),var(--c-accent-light));
+  border-radius:7px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; font-weight:700; color:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,0.2);
+}
+.header h1{font-size:17px; font-weight:600; letter-spacing:1px;}
+.header-sub{font-size:11px; opacity:0.8; margin-top:1px;}
+
+/* ===== Top Nav Modules ===== */
+.header-nav{
+  display:flex; align-items:center; gap:32px;
+  position:absolute; left:50%; transform:translateX(-50%);
+}
+.topnav-item{
+  padding:4px 2px;
+  border:none;
+  background:transparent;
+  color:rgba(255,255,255,0.72);
+  font-size:15px; font-weight:600; letter-spacing:3px;
+  cursor:pointer; font-family:inherit;
+  transition:color 0.2s;
+  position:relative;
+}
+.topnav-item:hover{color:#fff;}
+.topnav-item.active{color:#fff;}
+.topnav-item.active::after{
+  content:'';
+  position:absolute; left:0; right:0; bottom:-8px;
+  height:3px; border-radius:2px;
+  background:linear-gradient(135deg,var(--c-accent),var(--c-accent-light));
+}
+
+/* ===== Layout / Sidebar ===== */
+.layout{
+  display:flex;
+  gap:0;
+  align-items:flex-start;
+  padding:0 20px;
+}
+.sidebar{
+  width:210px;
+  flex-shrink:0;
+  background:#fff;
+  margin:8px 0;
+  border-radius:10px;
+  padding:8px 8px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  position:sticky;
+  top:8px;
+  max-height:calc(100vh - 16px);
+  overflow-y:auto;
+}
+.nav-item{
+  display:block;
+  width:100%;
+  text-align:left;
+  padding:10px 12px;
+  border:none;
+  background:transparent;
+  color:var(--c-text);
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+  border-radius:6px;
+  margin-bottom:2px;
+  transition:all 0.2s;
+  font-family:inherit;
+  border-left:3px solid transparent;
+  white-space:normal;
+  line-height:1.4;
+}
+.nav-item:hover{background:#f0f2f5; color:var(--c-primary);}
+.nav-item.active{
+  background:linear-gradient(135deg,var(--c-primary),var(--c-primary-light));
+  color:#fff;
+  border-left-color:var(--c-accent);
+  box-shadow:0 2px 6px rgba(26,58,107,0.3);
+}
+
+/* ===== 左侧导航树形结构 ===== */
+.nav-parent{
+  display:flex; justify-content:space-between; align-items:center; gap:6px;
+  width:100%; text-align:left;
+  padding:10px 10px;
+  border:none; background:transparent;
+  color:var(--c-primary);
+  font-size:13.5px; font-weight:700; letter-spacing:1px;
+  cursor:pointer; border-radius:6px; margin-bottom:2px;
+  font-family:inherit; transition:background 0.2s;
+}
+.nav-parent:hover{background:#eef3fa;}
+.nav-children{display:none; padding-left:6px;}
+.nav-children.open{display:block;}
+.nav-group-head{
+  display:flex; justify-content:space-between; align-items:center; gap:6px;
+  width:100%; text-align:left;
+  border:none; background:transparent;
+  padding:7px 8px 7px 14px;
+  font-size:12.5px; font-weight:600; color:var(--c-text);
+  cursor:pointer; border-radius:6px; margin-bottom:1px;
+  font-family:inherit; transition:background 0.2s;
+}
+.nav-group-head:hover{background:#f2f6fc; color:var(--c-primary);}
+/* 导航折叠箭头：收起 ▸ / 展开 ▾ */
+.nav-parent::after, .nav-group-head::after{
+  content:'▸'; font-size:11px; color:var(--c-text-light);
+  transition:transform 0.2s; flex-shrink:0;
+}
+.nav-parent.open::after, .nav-group-head.open::after{transform:rotate(90deg);}
+/* 一级固定展开：不显示折叠箭头、无点击手型 */
+.nav-parent.nav-fixed{cursor:default;}
+.nav-parent.nav-fixed::after{display:none;}
+.nav-group .nav-item{padding-left:26px; font-size:12.5px;}
+.nav-empty{font-size:11px; color:#b0b6bf; padding:3px 8px 6px 28px;}
+/* 报表台账管理（一级菜单，与固定报表管理同级）：金色主题 */
+.nav-parent.nav-ledger{color:#8a5a00;}
+.nav-parent.nav-ledger:hover{background:#fdf4dc;}
+/* 预算值填报管理（一级菜单，与报表台账管理同级，2026-10-21 新增）：青绿主题 */
+.nav-parent.nav-budget{color:#065f46;}
+.nav-parent.nav-budget:hover{background:#e6f6f0;}
+
+/* ===== 预算值填报（2026-10-21 新增；2026-10-23 查询条件简化：去中括号，标签色条 + 描边下拉） ===== */
+.bud-toolbar{display:flex; align-items:center; gap:26px; background:#fff; border-radius:10px; padding:14px 20px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.08); flex-wrap:wrap;}
+.bud-field{display:flex; align-items:center; gap:10px;}
+.bud-field-label{font-size:13px; color:var(--c-text); font-weight:600; display:flex; align-items:center; gap:7px; white-space:nowrap;}
+.bud-field-label::before{content:''; width:3px; height:14px; border-radius:2px; background:#0e7c66;}
+.bud-select{border:1px solid #d5dbe3; background:#fff; border-radius:8px; font-size:13.5px; color:var(--c-primary); font-weight:700; cursor:pointer; font-family:inherit; outline:none; padding:6px 12px; min-width:150px; transition:border-color .15s, box-shadow .15s;}
+.bud-select:hover,.bud-select:focus{border-color:#0e7c66; box-shadow:0 0 0 2px rgba(14,124,102,.10);}
+.bud-select:disabled{color:#8a94a0; background:#f6f7f9; cursor:not-allowed; border-color:#e3e7ec; box-shadow:none;}
+.bud-mode{margin-left:auto; font-size:12px; color:#9aa3ad; background:#f6f7f9; border-radius:999px; padding:5px 14px;}
+.bud-mode.edit{color:#0e7c66; background:#e6f6f0; font-weight:600;}
+.bud-table th.bud-hei{color:#fff; font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;}
+/* 填报说明卡片：淡蓝渐变底，与页面顶部藏蓝 header 色系呼应（2026-10-23 由青绿改蓝） */
+.bud-note{background:linear-gradient(180deg,#eff5fd,#e6eefb); border:1px solid #d4e2f5; border-radius:10px; padding:13px 18px; margin-top:12px; font-size:12.5px; color:var(--c-text-light); line-height:1.9;}
+.bud-note p{margin:0;}
+.bud-note p + p{margin-top:4px;}
+.bud-note b{color:var(--c-text);}
+.bud-note-star{color:#c0392b; font-weight:700;}
+/* 必填列（*xxxx 年预算值）：整列黑体白字，仅 * 红色标识必填（2026-10-23 表头改白，修复深蓝底深字不可读） */
+.bud-table th.bud-req{color:#fff; font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;}
+.bud-req-star{color:#ff6b6b; font-weight:700;}
+.bud-table td.bud-must{background:#fffdf5; font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;}
+.bud-input{width:130px; border:1.5px solid var(--c-border); border-radius:6px; padding:5px 8px; font-size:13px; font-family:inherit; text-align:right; color:var(--c-text); transition:border-color .15s, box-shadow .15s;}
+.bud-input:hover{border-color:var(--c-info);}
+.bud-input:focus{outline:none; border-color:var(--c-info); box-shadow:0 0 0 3px rgba(59,130,246,.12);}
+.bud-input.filled{border-color:var(--c-success); background:#f4fbf7;}
+/* 仅查看态：未点「编辑」前输入框不可填写（透明无边框，仅展示已填值） */
+.bud-table td.bud-must.ro{background:#fafbfc; font-family:inherit;}
+.bud-input.ro{border-color:transparent; background:transparent; box-shadow:none; color:var(--c-text); pointer-events:none;}
+.bud-input.ro.filled{border-color:transparent; background:transparent;}
+/* 提交校验未通过：填写边框变红，行下方提示"请输入预算值" */
+.bud-input.bud-err{border-color:#e74c3c; background:#fdf3f2; box-shadow:0 0 0 2px rgba(231,76,60,.12);}
+.bud-err-tip{font-size:11px; color:#e74c3c; margin-top:4px; font-family:inherit; text-align:left; white-space:nowrap;}
+.bud-must .bud-input-wrap{display:flex; flex-direction:column; align-items:stretch;}
+/* 指标标准编号：与指标名称列同款黑体样式（2026-10-23 由斜体灰字改黑体） */
+.bud-auto{font-weight:600; color:var(--c-primary); font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;}
+.bud-empty-tip{padding:36px 16px; text-align:center; color:#9aa3ad; font-size:13px;}
+
+/* 占位符统一样式：全平台 -- 与 N/A 一致（2026-09 再加深一档，黑体加粗观感） */
+.dim-dash,.dim-na{
+  color:#6f7b88; font-weight:700; font-style:normal;
+  font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;
+}
+.dim-dash{letter-spacing:2px;}
+.dim-na{letter-spacing:.5px; font-size:.92em;}
+/* ===== Content ===== */
+.content{flex:1; min-width:0; padding:8px 0 24px 12px;}
+.sheet-panel{display:none;}
+.sheet-panel.active{display:block;}
+
+.panel-header{
+  background:#fff;
+  border-radius:10px;
+  padding:16px 20px;
+  margin-bottom:12px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.panel-title{font-size:16px; font-weight:700; color:var(--c-primary);}
+.panel-actions{display:flex; gap:8px; align-items:center;}
+/* ===== 更新频率（独立块，置于数据日期之前） ===== */
+.query-freq-box{display:flex; align-items:center; gap:6px; background:#f8f9fb; border:1px solid var(--c-border); border-radius:6px; padding:4px 10px; white-space:nowrap;}
+.query-freq-label{font-size:12px; color:var(--c-text-light); font-weight:600;}
+.query-freq-value{font-size:12.5px; color:var(--c-primary); font-weight:700; background:#eef3fa; border-radius:4px; padding:1px 8px;}
+/* ===== 数据日期选择器（年+月双下拉） ===== */
+.ym{display:flex; align-items:center; gap:6px; background:#fff; border:1.5px solid var(--c-info); border-radius:10px; padding:3px 10px; box-shadow:0 1px 4px rgba(59,130,246,0.15); white-space:nowrap;}
+.ym-label{font-size:12.5px; color:var(--c-text); font-weight:600;}
+.ym-select{border:none; background:transparent; font-size:13.5px; color:var(--c-primary); font-weight:700; cursor:pointer; font-family:inherit; outline:none; padding:2px; transition:color 0.15s;}
+.ym-select:hover, .ym-select:focus{color:var(--c-info);}
+/* ===== 驾驶舱 ===== */
+.cock-base{font-size:12px; color:var(--c-text-light); background:#f8f9fb; border:1px solid var(--c-border); border-radius:6px; padding:4px 10px; white-space:nowrap;}
+.cock-desc{font-size:12.5px; color:var(--c-text-light); margin:0 0 12px;}
+.cock-companies{display:grid; grid-template-columns:repeat(auto-fit,minmax(430px,1fr)); gap:12px; margin-bottom:12px;}
+.cock-company{background:#fff; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.08); padding:14px 16px; border-top:3px solid var(--c-primary);}
+.cock-company-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+.cock-company-head b{font-size:14px; color:var(--c-primary); letter-spacing:1px;}
+.cock-group-title{font-size:12px; font-weight:700; color:var(--c-primary); border-left:3px solid var(--c-accent); padding-left:6px; margin:10px 0 6px;}
+.cock-group-title:first-of-type{margin-top:0;}
+.cock-charts{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.chart-card{background:#fff; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.08); padding:14px 16px; min-width:0;}
+.chart-title{font-size:13px; font-weight:700; color:var(--c-text); margin-bottom:10px;}
+.ck-bar{display:flex; height:18px; border-radius:9px; overflow:hidden; margin-bottom:10px;}
+.ck-legend{list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; font-size:12px;}
+.ck-legend li{display:flex; align-items:center; gap:6px; min-width:0;}
+.ck-legend i{width:10px; height:10px; border-radius:3px; flex-shrink:0;}
+.ck-legend .ck-leg-name{color:var(--c-text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.ck-legend b{margin-left:auto; color:var(--c-primary);}
+.ck-legend em{font-style:normal; color:var(--c-text-light); width:46px; text-align:right;}
+.ck-legend.simple{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));}
+.ck-vbars{display:flex; align-items:stretch; gap:14px; height:160px; padding:0 6px;}
+.ck-vbar{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0;}
+.ck-vbar b{font-size:11px; color:var(--c-primary);}
+.ck-vbar-col{width:70%; max-width:46px; border-radius:6px 6px 0 0; margin-top:auto;}
+.ck-vbar span{font-size:11px; color:var(--c-text-light); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
+.ck-gauge{text-align:center;}
+.ck-gauge-val{font-size:24px; font-weight:800; fill:var(--c-primary);}
+.ck-gauge-sub{font-size:10px; fill:var(--c-text-light);}
+.ck-axis{font-size:10px; fill:var(--c-text-light);}
+.ck-trend{width:100%; height:auto;}
+.toast{position:fixed; top:20px; right:20px; background:var(--c-primary); color:#fff; padding:10px 18px; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.25); z-index:9999; font-size:13px; opacity:0; transform:translateX(20px); transition:all 0.3s; pointer-events:none; max-width:360px;}
+.toast.show{opacity:1; transform:translateX(0);}
+.btn{
+  padding:6px 14px;
+  border:1px solid var(--c-border);
+  background:#fff;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:12px;
+  color:var(--c-text);
+  font-family:inherit;
+  transition:all 0.2s;
+  display:inline-flex; align-items:center; gap:4px;
+}
+.btn:hover{border-color:var(--c-primary); color:var(--c-primary);}
+.btn-primary{
+  background:var(--c-primary);
+  color:#fff;
+  border-color:var(--c-primary);
+}
+.btn-primary:hover{background:var(--c-primary-light); color:#fff;}
+
+/* ===== 集团总览驾驶舱：蓝白大屏风格 ===== */
+#panel-cock-group{
+  --gq-blue:#0d6ef0; --gq-blue2:#39a1f7; --gq-border:#cfe3f8; --gq-dim:#8aa2bd;
+  /* 涨跌配色：上涨红色、下降绿色（与平台其他模块一致） */
+  --gq-up:#e5484d; --gq-down:#0aa865; --gq-text:#33475f;
+  background:linear-gradient(180deg,#eaf4fd 0%,#f3f9ff 100%);
+  color:var(--gq-text);
+  border:1px solid var(--gq-border); border-radius:12px; padding:0; overflow:hidden; position:relative;
+}
+#panel-cock-group .cock-desc{color:#6f8bab; padding:12px 22px 0; margin:0; font-size:12px;}
+/* 顶栏：左下拉 + 中央标题（中部凸出下探、凹角过渡的大屏造型） */
+.gq-bar{display:flex; align-items:center; gap:14px; padding:0 16px; height:58px; position:relative; z-index:0;}
+.gq-bar-bg{position:absolute; left:0; right:0; top:0; height:78px; z-index:-1; pointer-events:none;}
+.gq-bar-bg::before{content:''; position:absolute; left:0; right:0; top:0; height:58px; background:linear-gradient(180deg,#66b1f8,#4b9cf5);}
+.gq-bar-bg::after{
+  content:''; position:absolute; left:25%; right:25%; top:0; height:78px; border-radius:0 0 16px 16px;
+  background:linear-gradient(180deg,#66b1f8 0%,#4b9cf5 74%,#3d8ef0 100%);
+}
+.gq-fil{position:absolute; width:20px; height:20px; top:58px; background:linear-gradient(180deg,#4b9cf5,#3d8ef0);}
+.gq-fil-l{left:calc(25% - 20px); -webkit-mask:radial-gradient(circle at 0 100%,transparent 19px,#000 20px); mask:radial-gradient(circle at 0 100%,transparent 19px,#000 20px);}
+.gq-fil-r{left:75%; -webkit-mask:radial-gradient(circle at 100% 100%,transparent 19px,#000 20px); mask:radial-gradient(circle at 100% 100%,transparent 19px,#000 20px);}
+.gq-bar-left{display:flex; align-items:center; gap:10px; flex-shrink:0; z-index:5;}
+.gq-sel{
+  display:flex; align-items:center; gap:7px; background:#fff; border:1px solid #cfe0f4; border-radius:4px;
+  padding:6px 10px; color:#33475f; font-size:13px; font-weight:600; font-family:inherit;
+  box-shadow:0 1px 4px rgba(20,90,180,0.15);
+}
+button.gq-sel{cursor:pointer; transition:box-shadow .2s;}
+button.gq-sel:hover{box-shadow:0 2px 10px rgba(20,90,180,0.28);}
+.gq-sel-ico{font-size:12px;}
+.gq-sel-chev{color:#7d94ad; font-size:11px; transition:transform .25s;}
+.fz-select.open .gq-sel-chev{transform:rotate(180deg);}
+.gq-title{flex:1; display:flex; justify-content:center; min-width:0;}
+.gq-title b{
+  display:inline-block; max-width:100%; padding:2px 10px;
+  color:#fff; font-size:22px; font-weight:800; letter-spacing:6px; text-align:center;
+  text-shadow:0 1px 4px rgba(0,40,110,0.5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.gq-meta{flex-shrink:0; color:#eaf6ff; font-size:12px; text-shadow:0 1px 2px rgba(0,40,110,0.35);}
+/* 公司选择器弹层（白色） */
+.fz-select{position:relative; display:inline-block; min-width:150px; width:auto;}
+.fz-select-name{flex:1; text-align:left; font-weight:600;}
+.fz-select-list{
+  position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:30;
+  background:#fff; border:1px solid #cfe0f4; border-radius:6px; padding:4px;
+  box-shadow:0 10px 26px rgba(20,70,150,0.22); display:none;
+}
+.fz-select.open .fz-select-list{display:block;}
+.fz-select-opt{
+  display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:5px;
+  cursor:pointer; color:#33475f; font-size:13px; transition:background .15s;
+  border-left:3px solid transparent;
+}
+.fz-select-opt:hover{background:#f0f7ff;}
+.fz-select-opt.active{background:#e3f1ff; border-left-color:var(--gq-blue); color:var(--gq-blue); font-weight:700;}
+.fz-select-opt i{width:7px; height:7px; border-radius:50%; background:#b9cfe6; flex-shrink:0;}
+.fz-select-opt.active i{background:var(--gq-blue); box-shadow:0 0 6px rgba(13,110,240,0.6);}
+/* ===== 驾驶舱独立模块：铺满整页；页面切换=顶部导航「驾驶舱」子菜单 ===== */
+#moduleCock{min-height:calc(100vh - 64px); display:flex; flex-direction:column;}
+.topnav-drop{position:relative; display:flex; align-items:center;}
+.topnav-chev{font-size:10px; margin-left:5px; transition:transform .18s;}
+.topnav-drop.open .topnav-chev{transform:rotate(180deg);}
+.topnav-sub{
+  display:none; position:absolute; top:calc(100% + 12px); left:50%; transform:translateX(-50%);
+  min-width:216px; background:linear-gradient(180deg,#ffffff 0%,#f5faff 100%);
+  border:1px solid rgba(120,170,240,.38); border-radius:12px;
+  box-shadow:0 16px 42px rgba(8,40,100,.28), 0 2px 8px rgba(8,40,100,.12);
+  padding:8px; z-index:200;
+}
+/* 指向顶导航的小箭头 */
+.topnav-sub::before{
+  content:''; position:absolute; top:-5.5px; left:50%; margin-left:-5px; width:10px; height:10px;
+  background:#fff; border-left:1px solid rgba(120,170,240,.38); border-top:1px solid rgba(120,170,240,.38);
+  transform:rotate(45deg); border-radius:2px 0 0 0;
+}
+.topnav-drop.open .topnav-sub{display:block; animation:gkSubIn .18s ease-out;}
+@keyframes gkSubIn{
+  from{opacity:0; transform:translateX(-50%) translateY(-7px);}
+  to{opacity:1; transform:translateX(-50%) translateY(0);}
+}
+.topnav-sub-cap{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-size:10px; color:#8aa2bd; letter-spacing:2px; padding:4px 10px 7px;
+  border-bottom:1px dashed #dceafa; margin-bottom:6px;
+}
+.topnav-sub-cap b{color:#69a5e8; font-weight:700; letter-spacing:1.5px;}
+.topnav-sub-item{
+  display:flex; align-items:center; gap:9px; width:100%; text-align:left;
+  padding:7px 9px; border-radius:9px; font-size:12.5px; color:#33475f; cursor:pointer;
+  transition:background .14s, color .14s, box-shadow .14s; position:relative;
+}
+.topnav-sub-item + .topnav-sub-item{margin-top:2px;}
+.topnav-sub-item:hover{background:#eaf4ff; color:#0d6ef0;}
+.topnav-sub-item:hover .tsub-ico{transform:scale(1.12); border-color:#9cc7f5;}
+.topnav-sub-item.active{
+  background:linear-gradient(90deg,#0d6ef0,#39a1f7); color:#fff; font-weight:700;
+  box-shadow:0 4px 12px rgba(13,110,240,.35);
+}
+.topnav-sub-item.active::after{content:'✓'; margin-left:auto; font-size:11px; opacity:.92;}
+.tsub-ico{
+  width:25px; height:25px; border-radius:7px; background:#eaf4ff; border:1px solid #d8eafb;
+  display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;
+  transition:transform .14s, border-color .14s;
+}
+.topnav-sub-item.active .tsub-ico{background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.4);}
+.cock-full{flex:1; min-height:0; padding:0;}
+.cock-full .sheet-panel{padding-bottom:26px;}
+/* 分区标题条（》标题《 样式） */
+.gk-strip{
+  display:flex; align-items:center; justify-content:center; gap:14px;
+  background:#f4faff; border:1px solid #d8eafb; border-radius:6px; padding:8px 12px;
+  margin:14px 0 12px; color:var(--gq-blue); font-size:15px; font-weight:800; letter-spacing:2px;
+}
+.gk-strip::before{content:'》'; color:#69b1f5; font-size:14px;}
+.gk-strip::after{content:'《'; color:#69b1f5; font-size:14px;}
+.gk-strip-sep{width:1px; height:15px; background:#a8d4f5; border-radius:1px;}
+.gk-strip:first-child{margin-top:0;}
+/* 指标卡片 */
+.fz-company-view{padding:26px 20px 6px;}
+.gk-row{display:grid; grid-template-columns:repeat(auto-fill,minmax(232px,1fr)); gap:14px; margin-bottom:4px;}
+.gk-card{
+  background:#fff; border:1px solid var(--gq-border); border-radius:8px;
+  box-shadow:0 2px 10px rgba(30,120,220,0.10); overflow:hidden;
+  display:flex; flex-direction:column; transition:box-shadow .2s, transform .2s;
+}
+.gk-card:hover{transform:translateY(-3px); box-shadow:0 8px 22px rgba(30,120,220,0.18);}
+.gk-head{
+  display:flex; align-items:center; gap:8px; padding:8px 12px;
+  background:linear-gradient(90deg,#39a1f7,#0d6ef0); color:#fff; font-size:13px; font-weight:700; letter-spacing:1px;
+}
+.gk-head::before{content:''; width:7px; height:7px; border-radius:50%; background:#fff; box-shadow:0 0 6px rgba(255,255,255,0.9); flex-shrink:0;}
+.gk-head .gk-info{margin-left:auto; font-size:11px; opacity:.75; font-weight:400;}
+/* 指标名称后的 tips 问号标识（蓝色卡头上白圈问号）；气泡为 body 级浮层，见 .gk-tip-float */
+.gk-tip{
+  position:relative; display:inline-flex; align-items:center; justify-content:center;
+  width:15px; height:15px; margin-left:6px; border-radius:50%; flex-shrink:0; vertical-align:1px;
+  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.55); color:#fff;
+  font-size:10px; font-weight:700; cursor:help; transition:all .15s; line-height:1;
+}
+.gk-tip:hover{background:#fff; border-color:#fff; color:#0d6ef0;}
+/* tips 浮层：深色圆角气泡 + 投影，fixed 定位不受卡片裁剪 */
+.gk-tip-float{
+  position:fixed; z-index:300; display:none; pointer-events:none;
+  background:rgba(23,35,54,.96); color:#fff; font-size:12px; font-weight:400; line-height:1.6;
+  padding:8px 12px; border-radius:8px; max-width:260px; letter-spacing:.5px;
+  box-shadow:0 6px 18px rgba(15,40,71,.28);
+}
+.gk-body{display:flex; align-items:center; gap:12px; padding:12px; flex:1;}
+/* 卡底近12月趋势区域图 */
+.gk-trend12{padding:0 12px 10px;}
+.gk-t12-cap{
+  font-size:10px; color:#8aa2bd; letter-spacing:1px; margin-bottom:4px;
+  border-top:1px dashed #e4eefb; padding-top:7px;
+}
+.gk-trend12 svg{width:100%; height:auto; display:block;}
+/* 整行指标卡（风险指标）：左数值 + 右柱状+趋势组合图；3 卡并入同一行 */
+.gk-wide-row{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:14px;}
+.gk-wide-row .gk-wide-card{margin-bottom:0; min-height:224px;}
+.gk-wide-row .gk-wide-body{grid-template-columns:120px minmax(0,1fr); gap:6px 14px; padding:12px 16px 10px 14px;}
+.gk-wide-row .gk-wide-left{flex-direction:column; align-items:stretch; gap:7px; padding:2px 8px 2px 0;}
+.gk-wide-row .gk-numblock{min-width:0; padding:0; align-items:flex-start;}
+.gk-wide-row .gk-numblock b{font-size:22px;}
+.gk-wide-row .gk-numblock i{font-size:10px;}
+.gk-wide-row .gk-stats{width:100%; gap:4px;}
+.gk-wide-row .gk-stat{font-size:10.5px; justify-content:space-between;}
+.gk-wide-row .gk-stat>span{min-width:0;}
+.gk-wide-card{margin-bottom:14px;}
+.gk-wide-body{
+  display:grid; grid-template-columns:216px minmax(0,1fr); gap:6px 18px;
+  padding:10px 16px 8px; align-items:center;
+}
+.gk-wide-left{display:flex; align-items:center; gap:12px; border-right:1px dashed #dceafa; padding:2px 14px 2px 0;}
+.gk-wide-left .gk-numblock{padding:0 4px 0 0; min-width:88px;}
+.gk-wide-chart{min-width:0;}
+.gk-wide-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px;}
+.gk-wide-title{color:#0d6ef0; font-size:13px; font-weight:800; letter-spacing:1px;}
+.gk-wide-title::before{content:'▸'; margin-right:6px; font-size:11px;}
+.gk-wide-legend{display:flex; gap:14px; font-size:10px; color:#5b7590;}
+.gk-wide-legend .lb{width:12px; height:9px; border-radius:2px; background:linear-gradient(180deg,#f0a63a,#f8d488); display:inline-block; margin-right:5px; vertical-align:-1px;}
+.gk-wide-legend .ll{width:8px; height:8px; border-radius:50%; background:#fff; border:2px solid #2f9bf2; display:inline-block; margin-right:5px;}
+.gk-wide-chart svg{width:100%; height:auto; min-height:158px; display:block;}
+@media (max-width:980px){.gk-wide-row{grid-template-columns:1fr;} .gk-wide-body{grid-template-columns:1fr;} .gk-wide-left{border-right:none; padding-right:0;}}
+.gk-t12-hover{cursor:pointer;}
+.gk-t12-hover:hover{fill:rgba(47,155,242,.08);}
+/* 趋势图悬停提示：深蓝玻璃浮层 */
+.gk-t12-tip{
+  position:fixed; z-index:999; pointer-events:none; min-width:98px;
+  background:linear-gradient(160deg,rgba(16,42,84,.96),rgba(9,24,52,.96));
+  border:1px solid rgba(90,160,255,.45); border-radius:7px; padding:6px 10px 7px;
+  box-shadow:0 8px 22px rgba(4,20,50,.45), 0 0 0 3px rgba(64,140,255,.12);
+  backdrop-filter:blur(4px); color:#dfeaff; font-size:11px;
+  display:flex; flex-direction:column; gap:3px;
+}
+.gk-t12-tip b{font-size:11px; color:#fff; letter-spacing:1px; border-bottom:1px solid rgba(120,170,255,.28); padding-bottom:3px;}
+.gk-t12-tip span{display:flex; justify-content:space-between; align-items:baseline; gap:12px; color:#9fc0ea;}
+.gk-t12-tip i{font-style:normal; font-weight:800; color:#ffd479; font-size:12px;}
+.gk-t12-tip i.up{color:#7ed957;}
+.gk-t12-tip i.down{color:#ff7d7d;}
+.gk-gauge{flex-shrink:0;}
+/* 无全年预算指标：「本年累计数」渐变大数值块（替代完成度环位置，视觉节奏对齐） */
+.gk-numblock{
+  flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-width:96px; padding:8px 8px 12px;
+}
+.gk-numblock .gk-np-cap{font-size:10px; color:var(--c-text); letter-spacing:1px; margin-bottom:5px;}
+.gk-numblock b{
+  font-size:26px; font-weight:800; line-height:1.1;
+  background:linear-gradient(135deg,#0d6ef0,#39a1f7);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.gk-numblock i{font-style:normal; font-size:11px; color:#8aa2bd; margin-top:3px;}
+.gk-stats{flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;}
+.gk-stat{display:flex; align-items:baseline; gap:8px; font-size:12px;}
+.gk-stat>span{color:var(--c-text); flex-shrink:0; min-width:52px;}
+.gk-stat b{color:var(--gq-blue); font-size:16px; font-weight:800;}
+.gk-stat b.gk-dimv{color:#33475f; font-size:13px;}
+.gk-stat i{font-style:normal; color:#8aa2bd; font-size:11px;}
+.gk-stat .kpi-delta{font-weight:700;}
+#panel-cock-group .kpi-delta.up{color:var(--gq-up);}
+#panel-cock-group .kpi-delta.down{color:var(--gq-down);}
+#panel-cock-group .kpi-delta.neutral{color:#9db3c8;}
+/* 本年累计数且无全年预算：两行布局（第一行 本年累计数+同比；第二行 当月值+环比） */
+.gk-2r{flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:9px; padding:2px 0;}
+.gk-2r-line{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
+.gk-2r-l{display:flex; align-items:baseline; gap:5px; min-width:0;}
+.gk-2r-l>span{font-size:10px; color:var(--c-text); letter-spacing:1px; flex-shrink:0;}
+.gk-2r-l b{
+  font-size:20px; font-weight:800; line-height:1.15; white-space:nowrap;
+  background:linear-gradient(135deg,#0d6ef0,#39a1f7);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.gk-2r-l b.sm{font-size:15px;}
+.gk-2r-l i{font-style:normal; font-size:10.5px; color:#8aa2bd; white-space:nowrap;}
+/* 数值+单位作为整体，始终同行显示（窄卡片下单位不换行） */
+.gk-2r-v{display:inline-flex; align-items:baseline; gap:5px; white-space:nowrap; min-width:0;}
+.gk-2r-v b,.gk-2r-v i{flex-shrink:0;}
+.gk-stat b,.gk-stat i,.gk-numblock b,.gk-numblock i{white-space:nowrap;}
+.gk-2r-r{display:flex; align-items:baseline; gap:5px; font-size:11px; flex-shrink:0;}
+.gk-2r-r>span{color:var(--c-text);}
+/* 口径切换页签（收入结构等多口径指标分组：切换后卡片显示对应口径的值） */
+.gk-calswitch{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px;}
+.gk-caltab{
+  border:1px solid #b9d7f5; background:#fff; color:#33475f; font-size:12px; font-weight:600;
+  padding:6px 14px; border-radius:16px; cursor:pointer; transition:all .18s; letter-spacing:.5px;
+}
+.gk-caltab:hover{border-color:#39a1f7; color:#0d6ef0; background:#f0f8ff;}
+.gk-caltab.active{
+  background:linear-gradient(90deg,#39a1f7,#0d6ef0); border-color:transparent; color:#fff;
+  box-shadow:0 3px 10px rgba(13,110,240,.30);
+}
+/* 多口径指标卡：卡内嵌小药丸切换器 */
+.gk-mcal-body{flex-direction:column; align-items:stretch; gap:9px;}
+.gk-mcal-tabs{display:flex; gap:6px; flex-wrap:wrap;}
+.gk-mcal-tab{
+  border:1px solid #cfe0f4; background:#f4f9ff; color:#51708f; font-size:10.5px; font-weight:700;
+  padding:3px 11px; border-radius:12px; cursor:pointer; transition:all .15s; letter-spacing:.5px;
+}
+.gk-mcal-tab:hover{border-color:#39a1f7; color:#0d6ef0; background:#eaf5ff;}
+.gk-mcal-tab.active{background:linear-gradient(90deg,#39a1f7,#0d6ef0); border-color:transparent; color:#fff; box-shadow:0 2px 8px rgba(13,110,240,.28);}
+.gk-mcal-row{display:flex; align-items:center; gap:12px;}
+.gk-mcal-row .gk-numblock{padding:0 4px 0 0; min-width:88px;}
+/* 一览表（蓝白） */
+.gk-table-section{padding:6px 0 14px;}
+#panel-cock-group .table-card{background:#fff; border:1px solid var(--gq-border); border-radius:8px; box-shadow:0 2px 10px rgba(30,120,220,0.10);}
+#panel-cock-group .data-table thead{background:linear-gradient(90deg,#39a1f7,#0d6ef0);}
+#panel-cock-group .data-table th{color:#fff; border-color:rgba(255,255,255,0.25);}
+#panel-cock-group .data-table td.yoy.up{color:var(--gq-up);}
+#panel-cock-group .data-table td.yoy.down{color:var(--gq-down);}
+#panel-cock-group .data-table td.yoy.neutral{color:#9db3c8;}
+
+/* ===== KPI cards ===== */
+.kpi-row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:12px;
+}
+.sheet-panel .kpi-card{
+  border-radius:10px;
+  padding:14px 16px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  border-left:4px solid var(--c-primary);
+  position:relative;
+  overflow:hidden;
+  transition:transform 0.25s ease, box-shadow 0.25s ease;
+}
+.sheet-panel .kpi-card > *{position:relative; z-index:1;}
+/* 悬停加深层：透明度淡入，过渡平滑 */
+.sheet-panel .kpi-card::after{
+  content:'';
+  position:absolute; inset:0;
+  opacity:0;
+  transition:opacity 0.25s ease;
+  pointer-events:none;
+}
+.sheet-panel .kpi-card:hover{transform:translateY(-4px);}
+.sheet-panel .kpi-card:hover::after{opacity:1;}
+/* 四张卡片按位置依次四色淡彩：淡蓝 / 淡金 / 淡绿 / 淡粉 */
+.sheet-panel .kpi-row .kpi-card:nth-child(1){border-left-color:#2a5298; background:linear-gradient(150deg,#f4f9ff 0%,#d8e8fb 100%);}
+.sheet-panel .kpi-row .kpi-card:nth-child(1)::after{background:linear-gradient(150deg,#e9f2fd 0%,#c6ddf8 100%);}
+.sheet-panel .kpi-row .kpi-card:nth-child(1):hover{box-shadow:0 8px 20px rgba(42,82,152,0.22);}
+.sheet-panel .kpi-row .kpi-card:nth-child(1) .kpi-value{color:#2a5298;}
+.sheet-panel .kpi-row .kpi-card:nth-child(2){border-left-color:#c8962e; background:linear-gradient(150deg,#fffaee 0%,#f8ecca 100%);}
+.sheet-panel .kpi-row .kpi-card:nth-child(2)::after{background:linear-gradient(150deg,#fdf4dc 0%,#f3e1af 100%);}
+.sheet-panel .kpi-row .kpi-card:nth-child(2):hover{box-shadow:0 8px 20px rgba(200,150,46,0.26);}
+.sheet-panel .kpi-row .kpi-card:nth-child(2) .kpi-value{color:#a97b1e;}
+.sheet-panel .kpi-row .kpi-card:nth-child(3){border-left-color:#0f9d76; background:linear-gradient(150deg,#f1fbf6 0%,#d3f0e1 100%);}
+.sheet-panel .kpi-row .kpi-card:nth-child(3)::after{background:linear-gradient(150deg,#e5f8ee 0%,#bfead3 100%);}
+.sheet-panel .kpi-row .kpi-card:nth-child(3):hover{box-shadow:0 8px 20px rgba(16,185,129,0.24);}
+.sheet-panel .kpi-row .kpi-card:nth-child(3) .kpi-value{color:#0d8a68;}
+.sheet-panel .kpi-row .kpi-card:nth-child(4){border-left-color:#d4626e; background:linear-gradient(150deg,#fff6f7 0%,#fadce0 100%);}
+.sheet-panel .kpi-row .kpi-card:nth-child(4)::after{background:linear-gradient(150deg,#fdeef0 0%,#f5c9cf 100%);}
+.sheet-panel .kpi-row .kpi-card:nth-child(4):hover{box-shadow:0 8px 20px rgba(212,98,110,0.24);}
+.sheet-panel .kpi-row .kpi-card:nth-child(4) .kpi-value{color:#c04855;}
+/* 6 卡同行（华润租赁 03-业务结构 2026-09-24）：六等分一行；第5/6卡循环复用第1/2卡的淡蓝/淡金配色 */
+.sheet-panel .kpi-row.kpi-row-6{grid-template-columns:repeat(6,1fr);}
+.sheet-panel .kpi-row .kpi-card:nth-child(5){border-left-color:#2a5298; background:linear-gradient(150deg,#f4f9ff 0%,#d8e8fb 100%);}
+.sheet-panel .kpi-row .kpi-card:nth-child(5)::after{background:linear-gradient(150deg,#e9f2fd 0%,#c6ddf8 100%);}
+.sheet-panel .kpi-row .kpi-card:nth-child(5):hover{box-shadow:0 8px 20px rgba(42,82,152,0.22);}
+.sheet-panel .kpi-row .kpi-card:nth-child(5) .kpi-value{color:#2a5298;}
+.sheet-panel .kpi-row .kpi-card:nth-child(6){border-left-color:#c8962e; background:linear-gradient(150deg,#fffaee 0%,#f8ecca 100%);}
+.sheet-panel .kpi-row .kpi-card:nth-child(6)::after{background:linear-gradient(150deg,#fdf4dc 0%,#f3e1af 100%);}
+.sheet-panel .kpi-row .kpi-card:nth-child(6):hover{box-shadow:0 8px 20px rgba(200,150,46,0.26);}
+.sheet-panel .kpi-row .kpi-card:nth-child(6) .kpi-value{color:#a97b1e;}
+.kpi-label{font-size:12px; color:var(--c-text-light); margin-bottom:6px;}
+.kpi-value{font-size:24px; font-weight:700; color:var(--c-primary);}
+.kpi-card.accent .kpi-value{color:var(--c-accent);}
+.kpi-card.success .kpi-value{color:var(--c-success);}
+.kpi-card.warning .kpi-value{color:var(--c-warning);}
+.kpi-card.danger .kpi-value{color:var(--c-danger);}
+.kpi-unit{font-size:12px; font-weight:500; color:var(--c-accent); margin-left:10px; letter-spacing:0.5px;}
+.kpi-trends{
+  margin-top:8px;
+  display:flex; flex-direction:column; gap:4px;
+}
+.kpi-trend-row{display:flex; justify-content:space-between; align-items:center; font-size:12px;}
+.kpi-trend-name{color:var(--c-text-light);}
+.kpi-delta{font-family:"Courier New",monospace; font-weight:600; white-space:nowrap;}
+.kpi-delta.up{color:var(--c-danger);}
+.kpi-delta.down{color:var(--c-success);}
+.kpi-delta.neutral{color:var(--c-text-light); font-weight:400;}
+
+/* ===== 概览区收起/展开 ===== */
+.collapse-bar{
+  display:flex; align-items:center; gap:8px;
+  background:var(--c-card);
+  border:1px dashed var(--c-border);
+  border-radius:8px;
+  padding:8px 14px;
+  margin-bottom:10px;
+  font-size:13px; font-weight:600; color:var(--c-text-light);
+  cursor:pointer; user-select:none;
+  transition:all 0.2s;
+}
+.collapse-bar:hover{border-color:var(--c-primary); color:var(--c-primary); background:#f8fafd;}
+.collapse-bar.expanded{color:var(--c-primary); border-style:solid;}
+.collapse-arrow{display:inline-block; font-size:10px; transition:transform 0.2s;}
+.collapse-bar.expanded .collapse-arrow{transform:rotate(90deg);}
+.collapse-hint{margin-left:auto; font-size:11px; font-weight:400; color:#9ca3af;}
+.overview-area.collapsed{display:none;}
+
+/* ===== Data table ===== */
+.table-card{
+  background:#fff;
+  border-radius:10px;
+  padding:16px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  overflow:hidden;
+}
+.table-wrap{overflow-x:auto; max-height:600px; overflow-y:auto;}
+.data-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+  min-width:900px;
+}
+.data-table thead{
+  position:sticky; top:0; z-index:5;
+  background:linear-gradient(135deg,var(--c-primary),var(--c-primary-light));
+  color:#fff;
+}
+.data-table th{
+  padding:8px 10px;
+  text-align:center;
+  font-weight:600;
+  font-size:12px;
+  white-space:nowrap;
+  border:1px solid rgba(255,255,255,0.15);
+}
+.data-table th.sub-head{
+  background:linear-gradient(135deg,#2a5298,#3a6bb0);
+  font-size:11px;
+}
+.data-table td{
+  padding:7px 10px;
+  text-align:center;
+  border:1px solid var(--c-border);
+  white-space:nowrap;
+}
+.data-table tbody tr:nth-child(even){background:#f8f9fb;}
+.data-table tbody tr:hover{background:#fff8e6;}
+.data-table tbody tr.row-sep{background:transparent;}
+.data-table tbody tr.row-sep:hover{background:transparent;}
+.data-table tbody tr.row-sep td{padding:0; height:14px; border:none;}
+.data-table td.text-left{text-align:left; padding-left:12px;}
+.data-table td.indicator-name{font-weight:500; color:var(--c-primary); text-align:left; padding-left:12px;}
+.data-table td.indicator-name.lv0{font-weight:600; color:var(--c-primary);}
+/* 全模块统一（参照华润保险报表2）：二级指标黑体；三级指标颜色调浅；二/三级右对齐；一级保持原样式 */
+.data-table td.indicator-name.lv1{font-weight:400; font-family:"SimHei","Heiti SC","Microsoft YaHei",sans-serif; color:var(--c-text); text-align:right; padding-right:12px;}
+.data-table td.indicator-name.lv2{font-weight:400; color:#9ca3af; text-align:right; padding-right:12px;}
+/* 华润保险02-业务指标 四级层级（2026-09-15）：一级加粗靠左 / 二级半粗靠左 / 三级黑体靠右 / 四级浅灰靠右；
+   仅作用本表（#panel-ins02 作用域），其他模块三级层级样式不受影响 */
+#panel-ins02 td.indicator-name.lv0{font-weight:700;}
+#panel-ins02 td.indicator-name.lv1{font-weight:600; color:var(--c-primary); text-align:left; padding-left:12px; font-family:inherit;}
+#panel-ins02 td.indicator-name.lv2{font-weight:400; font-family:"SimHei","Heiti SC","Microsoft YaHei",sans-serif; color:var(--c-text); text-align:right; padding-right:12px;}
+#panel-ins02 td.indicator-name.lv3{font-weight:400; color:#9ca3af; text-align:right; padding-right:12px;}
+.data-table td.value{font-family:"Courier New",monospace; font-weight:600;}
+.data-table td.value.empty{color:var(--c-text-light); font-weight:400;}
+.data-table td.assess{font-weight:600;}
+/* 指标属性标签列：考核指标彩色小标签（淡蓝底蓝字圆角，2026-09-23 替代原 ★ 星号） */
+.assess-tag{
+  display:inline-block; padding:2px 10px; border-radius:5px;
+  background:#dce8f8; color:#2a5298;
+  font-size:11px; font-weight:600; white-space:nowrap; line-height:1.6;
+}
+/* 高质量指标标签（淡绿底绿字，与指标标准库 .std-badge.hq 同色系；2026-09-24 华润银行 09-风险情况） */
+.assess-tag.hq{background:#eaf7f0; color:#0d8a68;}
+/* 双标签并存（考核指标+高质量指标）时的间距；单元格过窄时自动换行 */
+.assess-tag + .assess-tag{margin-left:4px;}
+.data-table td.yoy{font-family:"Courier New",monospace; white-space:nowrap;}
+.data-table td.yoy.up{color:var(--c-danger); font-weight:600;}
+.data-table td.yoy.down{color:var(--c-success); font-weight:600;}
+.data-table td.yoy.neutral{color:var(--c-text-light);}
+.data-table td.yoy .delta-arrow{
+  display:inline-block;
+  font-size:9px;
+  line-height:1;
+  margin-right:3px;
+  transform:translateY(-1px);
+  font-family:Arial,sans-serif;
+}
+.data-table td.progress-cell{
+  position:relative;
+  min-width:120px;
+}
+.progress-bar-wrap{
+  display:flex; align-items:center; gap:6px; justify-content:center;
+}
+.progress-bar{
+  flex:1;
+  height:6px;
+  background:#e5e7eb;
+  border-radius:3px;
+  overflow:hidden;
+  max-width:80px;
+}
+.progress-fill{
+  height:100%;
+  border-radius:3px;
+  background:linear-gradient(90deg,var(--c-success),#34d399);
+}
+.progress-fill.mid{background:linear-gradient(90deg,var(--c-warning),#fbbf24);}
+.progress-fill.low{background:linear-gradient(90deg,var(--c-danger),#f87171);}
+.progress-text{font-size:11px; font-weight:600; min-width:36px; text-align:left;}
+
+.data-table .group-row{
+  background:linear-gradient(135deg,#eef2f9,#dbe5f1);
+  font-weight:700;
+  color:var(--c-primary);
+  text-align:left;
+  padding-left:12px;
+}
+
+/* ===== 华润保险 报表2-业务指标：三级指标名称（仅 ins02 面板生效） ===== */
+/* 华润保险报表2 / 华润信托 的指标名称列层级样式已统一至全局 .indicator-name.lv1/.lv2 规则 */
+
+/* ===== 指标口径页签（华润资产报表：表格上方按口径切换明细） ===== */
+.caliber-tabs{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
+.caliber-tab{
+  border:1px solid var(--c-border); background:#fff; border-radius:6px;
+  padding:6px 16px; cursor:pointer; font-family:inherit;
+  display:flex; flex-direction:column; align-items:flex-start;
+  transition:all 0.2s; text-align:left;
+}
+.caliber-tab-name{font-size:13px; font-weight:600; color:var(--c-text); line-height:1.4;}
+.caliber-tab-sub{font-size:11px; font-weight:400; color:var(--c-text-light); line-height:1.4;}
+.caliber-tab:hover{border-color:var(--c-primary);}
+.caliber-tab:hover .caliber-tab-name{color:var(--c-primary);}
+.caliber-tab.active{
+  background:linear-gradient(135deg,var(--c-primary),var(--c-primary-light));
+  border-color:var(--c-primary);
+  box-shadow:0 2px 6px rgba(26,58,107,0.3);
+}
+.caliber-tab.active .caliber-tab-name{color:#fff;}
+.caliber-tab.active .caliber-tab-sub{color:rgba(255,255,255,0.78);}
+.caliber-pane{display:none;}
+.caliber-pane.active{display:block;}
+.kpi-row.caliber-pane.active{display:grid;}
+
+/* ===== 指标分类筛选条（华润保险-业务指标：表头上方按分类过滤明细行） ===== */
+.cat-filter{display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
+.cat-filter-label{font-size:13px; font-weight:600; color:var(--c-text);}
+.cat-filter-btn{
+  border:1px solid var(--c-border); background:#fff; border-radius:16px;
+  padding:5px 18px; cursor:pointer; font-family:inherit;
+  font-size:13px; font-weight:600; color:var(--c-text); transition:all 0.2s;
+}
+.cat-filter-btn:hover{border-color:var(--c-primary); color:var(--c-primary);}
+.cat-filter-btn.active{
+  background:linear-gradient(135deg,var(--c-primary),var(--c-primary-light));
+  border-color:var(--c-primary); color:#fff;
+  box-shadow:0 2px 6px rgba(26,58,107,0.3);
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar{width:8px; height:8px;}
+::-webkit-scrollbar-track{background:#f1f1f1;}
+::-webkit-scrollbar-thumb{background:#c5c5c5; border-radius:4px;}
+::-webkit-scrollbar-thumb:hover{background:#a0a0a0;}
+
+/* Responsive */
+@media(max-width:1300px){
+  .std-stats{grid-template-columns:repeat(3,1fr);}
+}
+@media(max-width:1200px){
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+  .kpi-row.kpi-row-6{grid-template-columns:repeat(3,1fr);}
+  .sidebar{width:170px;}
+  .std-form{grid-template-columns:repeat(2,1fr);}
+  .std-form-actions{grid-column:1 / -1;}
+}
+@media(max-width:900px){
+  .std-stats{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:768px){
+  .layout{flex-direction:column;}
+  .kpi-row.kpi-row-6{grid-template-columns:repeat(2,1fr);}
+  .sidebar{width:100%; position:static; max-height:none;}
+  .header{flex-wrap:wrap; gap:8px;}
+  .header-nav{position:static; transform:none; margin:0 auto; gap:24px;}
+  .topnav-item{padding:4px 8px;}
+  .std-form{grid-template-columns:1fr;}
+  .std-form-actions{grid-column:auto;}
+}
+
+/* ===== 模块二：管理驾驶舱（深蓝科技大屏风 · 2026-10-12 改造，作用域 #moduleLeader） ===== */
+#moduleLeader{
+  /* 2026-10-22 整体焕新：藏蓝主体系（深→亮蓝渐进做骨架），暖橙辅色（点缀/告警强调），状态红绿语义不变；板块识别色见脚本 BU_COLORS */
+  --blue:#17427d; --blue2:#2f7fd6; --cyan:#2f7fd6;
+  --navy-deep:#0f2f5e; --blue-tint:#f0f6fd;
+  --gold:#c2620e; --gold-light:#9a5b12; --gold-bright:#f59e0b; --gold-soft:#fbbf6e;
+  --card:#ffffff; --line:#dce6f2; --line2:#9ec3ea;
+  --text:#1e3350; --dim:#7a8ba6; --dim2:#4d6284;
+  --up:#d64550; --down:#0f9d6e; --warn:#c2620e;
+  --ok-bg:#e6f7f0; --ok-fg:#0f9d6e; --ok-line:#a8e0c8;
+  --warn-bg:#fff4e6; --warn-fg:#c2620e; --warn-line:#f5d9b0;
+  --bad-bg:#fdecee; --bad-fg:#d64550; --bad-line:#f3c2c7;
+  --sh1:0 1px 3px rgba(23,66,125,.05), 0 6px 18px -12px rgba(23,66,125,.16);
+  --sh2:0 6px 18px rgba(23,66,125,.10);
+  font-family:"Microsoft YaHei","PingFang SC","Helvetica Neue",Arial,sans-serif;
+  background:linear-gradient(180deg,#f4f8fd 0%,#e9f0f9 46%,#edf3fa 100%);
+  color:var(--text);font-size:14px;line-height:1.6;min-height:calc(100vh - 64px)}
+/* ---- 控制工具条（v3：板块页签 + 数据日期 + 币种；随模块 static 展示，平台 header 常驻其上） ---- */
+#moduleLeader header{position:static;
+  background:linear-gradient(180deg,#ffffff 0%,#f7fbff 100%);
+  border-bottom:1px solid var(--line);box-shadow:0 2px 12px rgba(23,66,125,.07)}
+#moduleLeader .gq-bar{display:flex;align-items:center;gap:14px;padding:0 26px;min-height:56px;flex-wrap:wrap}
+#moduleLeader header nav{display:flex;gap:6px;flex-wrap:wrap}
+#moduleLeader header nav button{font-family:inherit;font-size:13.5px;padding:9px 18px;cursor:pointer;letter-spacing:1px;
+  border:1px solid transparent;border-radius:999px;background:transparent;color:var(--dim2);
+  transition:color .16s,background .16s,box-shadow .16s}
+#moduleLeader header nav button:hover{color:var(--blue);background:#eaf2fc}
+#moduleLeader header nav button.on{color:#fff;font-weight:700;
+  background:linear-gradient(135deg,var(--navy-deep) 0%,var(--blue) 55%,var(--blue2) 100%);
+  border-color:transparent;box-shadow:0 4px 12px rgba(23,66,125,.30)}
+#moduleLeader .bar-right{display:flex;align-items:center;gap:10px;margin-left:auto;flex-wrap:wrap}
+#moduleLeader .bar-right label{font-size:12px;color:var(--dim2)}
+#moduleLeader select{font-family:inherit;font-size:12.5px;border:1px solid var(--line);color:var(--text);
+  background:#ffffff;border-radius:8px;padding:6px 10px;cursor:pointer;outline:none;
+  box-shadow:0 1px 2px rgba(23,66,125,.05);font-variant-numeric:tabular-nums}
+#moduleLeader select:focus{border-color:var(--line2)}
+#moduleLeader select option{background:#ffffff;color:#1f3350}
+#moduleLeader .cur-chip{font-size:12px;color:#9a5b12;letter-spacing:.5px;background:#fff6ea;
+  border:1px solid #f3ddbb;border-radius:6px;padding:5px 11px;white-space:nowrap}
+/* ---- 北极星指标带（简洁卡：蓝色渐变顶线点缀；仅总览页显示） ---- */
+#moduleLeader #north{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+/* .nk 旧北极星卡已升级 .fkk 统一指标卡（2026-10-26 参考驾驶舱卡样式），旧类删除 */
+#moduleLeader .up{color:var(--up);font-weight:600}
+#moduleLeader .down{color:var(--down);font-weight:600}
+#moduleLeader .flat{color:var(--dim)}
+#moduleLeader main{padding:12px 26px 26px}
+#moduleLeader .view{display:none}
+#moduleLeader .view.on{display:block}
+/* ---- 卡片（白卡 + 细线 + 藏蓝标题栏蓝色渐变竖条 + 柔和双层投影） ---- */
+#moduleLeader .card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;
+  box-shadow:var(--sh1)}
+#moduleLeader .chd{display:flex;align-items:center;gap:8px;padding:11px 15px;
+  background:linear-gradient(180deg,#fbfdff 0%,#f4f9ff 100%);
+  border-bottom:1px solid var(--line);color:var(--blue);font-size:13.5px;font-weight:700;letter-spacing:.5px}
+#moduleLeader .chd::before{content:'';width:3.5px;height:15px;border-radius:2px;flex:none;
+  background:linear-gradient(180deg,var(--blue) 0%,var(--blue2) 100%);box-shadow:none}
+#moduleLeader .chd .tag{margin-left:auto;font-size:11px;color:var(--dim);font-weight:400;letter-spacing:0}
+/* 卡头金融卡变体（2026-10-27 银行 hero）：与资产利润率等 .stx .t 名称栏同款——蓝渐变满铺 + 白点圆标 + 白字 */
+#moduleLeader .chd.chd-fkk{padding:9px 14px;background:linear-gradient(90deg,#39a1f7,#0d6ef0);
+  border-bottom:none;color:#fff;font-size:12px;letter-spacing:1px}
+#moduleLeader .chd.chd-fkk::before{content:'';width:7px;height:7px;border-radius:50%;
+  background:#fff;box-shadow:0 0 6px rgba(255,255,255,.9)}
+/* 2026-10-27 银行 tab 整页名称栏统一为 hero 同款蓝渐变样式（收入构成/扣减结构/效益定价/监管红线等全部卡片） */
+#moduleLeader #v-bank .chd{padding:9px 14px;background:linear-gradient(90deg,#39a1f7,#0d6ef0);
+  border-bottom:none;color:#fff;font-size:12px;letter-spacing:1px}
+#moduleLeader #v-bank .chd::before{content:'';width:7px;height:7px;border-radius:50%;
+  background:#fff;box-shadow:0 0 6px rgba(255,255,255,.9)}
+#moduleLeader #v-bank .chd .tag{color:rgba(255,255,255,.8)}
+#moduleLeader .cbd{padding:13px 15px}
+#moduleLeader .chartbox{position:relative;height:242px}
+#moduleLeader .chartbox.tall{height:300px}
+/* 图下迷你图例（2026-10-27 按需求）：蓝色方块=本月数（与柱同色 #0d6ef0） · 橙色线段=月度同比（与曲线同色） */
+#moduleLeader .chartlg{display:flex;align-items:center;justify-content:center;gap:6px;
+  margin-top:4px;font-size:10.5px;color:var(--dim2)}
+#moduleLeader .chartlg .lg-bar{width:10px;height:10px;border-radius:2px;background:#4d94ff;flex:none}
+#moduleLeader .chartlg .lg-line{width:16px;height:0;border-top:2px solid #f59e0b;border-radius:2px;margin-left:12px;flex:none;position:relative}
+#moduleLeader .chartlg .lg-line::after{content:'';position:absolute;left:5px;top:-4px;width:6px;height:6px;border-radius:50%;background:#f59e0b}
+#moduleLeader .grid{display:grid;gap:12px}
+#moduleLeader .g2{grid-template-columns:1fr 1fr}
+#moduleLeader .g3{grid-template-columns:repeat(3,1fr)}
+#moduleLeader .row{margin-bottom:12px}
+#moduleLeader .row:last-child{margin-bottom:0}
+/* ---- 板块 KPI 四联卡（藏蓝→亮蓝渐变顶线 + 淡蓝底纹，颜色只留给数据语义） ---- */
+#moduleLeader .bukpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+#moduleLeader .bukpi{position:relative;overflow:hidden;border-radius:12px;padding:13px 15px;
+  background:linear-gradient(165deg,#ffffff 30%,#f3f8fe 100%);
+  border:1px solid var(--line);border-top:3px solid var(--blue2);
+  box-shadow:var(--sh1);transition:transform .22s,box-shadow .22s}
+#moduleLeader .bukpi:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+#moduleLeader .bukpi.c0{border-top-color:var(--navy-deep)}
+#moduleLeader .bukpi.c1{border-top-color:var(--blue)}
+#moduleLeader .bukpi.c2{border-top-color:var(--blue2)}
+#moduleLeader .bukpi.c3{border-top-color:#5b9bd9}
+
+#moduleLeader .bukpi .l{font-size:12px;color:var(--dim2);margin-bottom:5px;position:relative;z-index:1}
+#moduleLeader .bukpi .v{display:flex;align-items:baseline;gap:3px;font-variant-numeric:tabular-nums;position:relative;z-index:1}
+#moduleLeader .bukpi .v b{font-size:25px;font-weight:800;color:var(--blue)}
+#moduleLeader .bukpi.c0 .v b,#moduleLeader .bukpi.c1 .v b,#moduleLeader .bukpi.c2 .v b,#moduleLeader .bukpi.c3 .v b{color:var(--blue)}
+#moduleLeader .bukpi .v small{font-size:11px;color:var(--dim);font-weight:500}
+/* KPI 卡预算完成度：数值行左=值 右=圆环+全年预算（vrow 仅在带 bud 的卡输出） */
+#moduleLeader .bukpi.hasbud .vrow{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;z-index:1}
+#moduleLeader .ringwrap{display:flex;align-items:center;gap:8px;flex:none}
+#moduleLeader .kping{display:block}
+#moduleLeader .budbox{display:flex;flex-direction:column;gap:1px;line-height:1.25}
+#moduleLeader .budbox .bl{font-size:10.5px;color:var(--dim)}
+#moduleLeader .budbox .bv{font-size:14px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums}
+#moduleLeader .budbox .bv small{font-size:10px;color:var(--dim);font-weight:500;margin-left:2px}
+#moduleLeader .bukpi .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;position:relative;z-index:1}
+#moduleLeader .bukpi .d{font-size:12px}
+/* 行1 核心 KPI（营业收入/利润总额）：左=数值+同比，右=预算完成环；下接累计趋势 canvas（2026-10-15） */
+#moduleLeader .kpihero{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+#moduleLeader .kpihero .hv{display:flex;align-items:baseline;gap:4px;font-variant-numeric:tabular-nums;flex-wrap:wrap;row-gap:2px}
+#moduleLeader .kpihero .hv b{font-size:26px;font-weight:800;color:#17427d}
+#moduleLeader .kpihero .hv small{font-size:11px;color:var(--dim);font-weight:500;white-space:nowrap}
+#moduleLeader .kpihero .hv .hv-m{display:inline-block;white-space:nowrap}
+#moduleLeader .kpihero .hd{font-size:12px;color:var(--dim2);margin-top:3px}
+/* 2026-10-22 hero 六轮布局：左=预算完成环（环内=进度数）｜中=本年累计/累计同比/全年预算 三行纵排｜右=本月数/月度环比 上下结构 */
+#moduleLeader .kpihero .hv-l{display:flex;align-items:center;gap:13px}
+#moduleLeader .kpihero .hv-main{min-width:0;display:flex;flex-direction:column;gap:3px}
+/* 2026-10-22 七轮（参考图样式）：中间三行=灰色小标签在上、数值在下；本年累计=亮蓝大字，累计同比=红涨绿跌带箭头，预算数=墨色 */
+#moduleLeader .kpihero .hv-row{display:flex;flex-direction:column;line-height:1.25}
+/* 行内变体（2026-10-27 银行 hero：累计同比/预算数值移到名称右侧同行） */
+#moduleLeader .kpihero .hv-row.hv-inl{flex-direction:row;align-items:baseline;gap:9px}
+#moduleLeader .kpihero .hv-row.hv-inl .lbl{flex:none;width:46px}
+#moduleLeader .kpihero .hv-row .lbl{font-size:10.5px;color:var(--dim)}
+#moduleLeader .kpihero .hv-row .val{font-size:13px;font-weight:700;color:#22354f;font-variant-numeric:tabular-nums}
+#moduleLeader .kpihero .hv-row .val small{font-size:10px;color:var(--dim);font-weight:500;margin-left:2px}
+#moduleLeader .kpihero .hv-row .val.hv-blue{font-size:21px;font-weight:800;color:#2f7fd6;letter-spacing:.3px}
+#moduleLeader .kpihero .hv-row .val.up{color:var(--up)}
+#moduleLeader .kpihero .hv-row .val.down{color:var(--down)}
+#moduleLeader .kpihero .hv-ring{display:block;flex:none}
+#moduleLeader .kpihero .hv-mo{display:flex;flex-direction:column;gap:1px;flex:none;padding-left:14px;border-left:1px dashed var(--line);text-align:left}
+#moduleLeader .kpihero .hv-mo .mol{font-size:11px;color:var(--dim)}
+#moduleLeader .kpihero .hv-mo .mov{font-size:19px;font-weight:800;color:#17427d;font-variant-numeric:tabular-nums;line-height:1.25}
+#moduleLeader .kpihero .hv-mo .mov small{font-size:10.5px;color:var(--dim);font-weight:500;margin-left:2px}
+/* 2026-10-27 银行 hero：月度同比四字在前、值在后；四字与「本月数」标签同字号同色（复用 .mol） */
+#moduleLeader .kpihero .hv-mo .mo-yoy{display:flex;align-items:baseline;gap:6px;margin-top:1px}
+#moduleLeader .kpihero .hv-mo i.yoy{margin-left:0;display:block;font-size:11px}
+/* 收入构成 5 宫格小图单元（柱=本年累计；图下不再重复明细行） */
+#moduleLeader .rcell{background:#f7fafd;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+#moduleLeader .rcell .rl{font-size:11.5px;color:var(--dim2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#moduleLeader .rcell .rv{font-size:16px;font-weight:800;color:#17427d;font-variant-numeric:tabular-nums;margin:2px 0 4px}
+#moduleLeader .rcell .rv small{font-size:10.5px;color:var(--dim);font-weight:500}
+#moduleLeader .rcell .rv i.yoy{font-size:10px;margin-left:4px}
+#moduleLeader .rcell .rb{font-size:10px;color:var(--dim);margin-top:3px;font-variant-numeric:tabular-nums}
+/* 损益瀑布小图变体：扣减项琥珀色、净利润绿色（左色条 + 数值同色，与 .stx 变体同色系） */
+#moduleLeader .rcell{position:relative}
+#moduleLeader .rcell.amber{border-left:3px solid #d97706}
+#moduleLeader .rcell.ok{border-left:3px solid #0f9d6e}
+#moduleLeader .rcell .rv.c-amber{color:#c2620e}
+#moduleLeader .rcell .rv.c-ok{color:#0f9d6e}
+
+
+
+
+
+/* ---- 小节标题：居中，箭头紧贴标题 》标题《 说明文字（2026-10-21 按需求恢复） ---- */
+#moduleLeader .secttl{display:flex;align-items:baseline;justify-content:center;gap:12px;
+  background:transparent;border:none;border-radius:0;
+  padding:2px 0;margin:20px 0 12px;
+  color:var(--blue);font-size:15px;font-weight:800;letter-spacing:2px}
+#moduleLeader .secttl .ttl::before{content:'》';color:var(--gold-bright);font-size:15px;margin-right:6px}
+#moduleLeader .secttl .ttl::after{content:'《';color:var(--gold-bright);font-size:15px;margin-left:6px}
+#moduleLeader .secttl .lite{font-weight:400;font-size:12px;color:var(--dim);letter-spacing:0;text-shadow:none}
+#moduleLeader .chips{display:flex;flex-wrap:wrap;gap:7px}
+/* 分组指标格（华润银行 tab：存款成本 / 资产质量 等卡内替代胶囊堆叠） */
+#moduleLeader .stgrid2{display:grid;grid-template-columns:1.55fr 1fr;gap:22px}
+#moduleLeader .stgrp-cap{font-size:12.5px;color:var(--blue2);font-weight:700;letter-spacing:1px;margin:0 0 8px;display:flex;align-items:baseline;gap:8px}
+#moduleLeader .stgrp-cap .lite{font-weight:400;font-size:11px;color:var(--dim);letter-spacing:0}
+#moduleLeader .stgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#moduleLeader .stgrid-4{grid-template-columns:repeat(4,1fr)}
+/* 一行 6 个指标卡网格（2026-10-20：业绩合同/资产负债核心科目/监管红线卡片化） */
+#moduleLeader .bkgrid6{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+/* 三列卡行（2026-10-28 资产负债核心科目：总资产/总负债/所有者权益三总量卡，与六联格同款卡版式） */
+#moduleLeader .bkgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+/* 2026-10-28 按需求：核心科目三总量卡名称栏去蓝渐变（模块卡头已是蓝条，避免蓝底堆叠）→ 再按需求彻底去背景，
+   纯文字直排卡片顶部，并删除「本月末」口径标签（kal 置空即不渲染）；
+   同日再按需求：删除名称前圆点，名称改黑体（近黑加粗） */
+#moduleLeader .stx.plain .t{background:none;color:#152741;letter-spacing:.5px;padding-left:4px;padding-right:0;font-weight:800;gap:5px}
+#moduleLeader .stx.plain .t::before{display:none}
+/* 名称前小样式图标（2026-10-28 按需求，核心科目三总量卡 opts.icon；参考图=蓝色渐变圆角方块填充式） */
+#moduleLeader .stx .t .t-ico{width:15px;height:15px;flex:none;margin-right:0}
+/* 双侧分项明细：浅蓝背景墙 + 中缝虚线分隔（2026-10-28 按需求，两半不再堆在一起） */
+#moduleLeader .bs-halves{gap:0}
+#moduleLeader .bs-halves>div{padding:12px 16px}
+#moduleLeader .bs-halves>div:first-child{background:#f3f8ff;border-radius:8px 0 0 8px;border-right:1px dashed #b9d4f2}
+#moduleLeader .bs-halves>div:last-child{background:#f3f8ff;border-radius:0 8px 8px 0}
+/* 收入构成/利润扣减结构明细行（2026-10-29 按需求）：右侧三段固定列——值列 / 累计同比列 / 占列，
+   上下行文字纵向成列对齐（含「亿元/累计同比/占」文字标签各自成列） */
+#moduleLeader .strow b.cols3{display:inline-flex;align-items:center;white-space:nowrap;gap:0;font-weight:800}
+#moduleLeader .strow b.cols3 i{font-style:normal}
+#moduleLeader .strow b.cols3 .c-v{flex:none;width:94px;text-align:right;font-variant-numeric:tabular-nums}
+/* 列格内部再拆「固定宽标签 + 右对齐数值」两个子列：数值宽窄变化不再推移标签，
+   「累计同比」「占」字与数值分别钉死在同一竖列（2026-10-30 按需求修错位） */
+#moduleLeader .strow b.cols3 .c-y{flex:none;width:112px;display:inline-flex;align-items:center;font-weight:600}
+#moduleLeader .strow b.cols3 .c-p{flex:none;width:66px;display:inline-flex;align-items:center}
+#moduleLeader .strow b.cols3 .lb{flex:none;font-size:10.5px;font-weight:400;color:#7a8ba6;margin-right:4px;text-align:left}
+#moduleLeader .strow b.cols3 .c-y .lb{width:46px}
+#moduleLeader .strow b.cols3 .c-p .lb{width:12px;margin-right:5px}
+/* 数值紧挨标签左对齐：标签固定宽 → 各行「累计同比/占」同竖列，数值左缘也同竖列（2026-10-30 按需求紧挨） */
+#moduleLeader .strow b.cols3 .c-y i.yoy{display:block;flex:1;min-width:0;margin-left:0;text-align:left;font-size:10.5px}
+#moduleLeader .strow b.cols3 .c-p .pv{flex:1;min-width:0;text-align:left;font-size:10px;font-weight:500;color:#8aa2bd}
+/* 资产负债构成（2026-10-29 按需求）：「其中」行 + 右侧数值/同比/占三段固定宽列，上下行纵向对齐 */
+#moduleLeader .bs-qz{font-size:12px;color:#51678a;letter-spacing:2px;margin:2px 0 2px}
+#moduleLeader .strow.bs-row b.bs-cols{display:flex;align-items:baseline;gap:0;white-space:nowrap;font-weight:800}
+#moduleLeader .strow.bs-row .c-v{flex:none;width:88px;text-align:right;font-style:normal;font-weight:800;color:#17427d;font-variant-numeric:tabular-nums}
+#moduleLeader .strow.bs-row .c-v small{font-size:9.5px;font-weight:500;color:#8aa2bd;margin-left:2px}
+/* 同比/占 列内部拆「固定宽标签+右对齐数值」子列，防数值宽窄推移标签（同 cols3 修法） */
+#moduleLeader .strow.bs-row .c-y{flex:none;width:84px;display:inline-flex;align-items:center;font-style:normal;font-size:11px;font-weight:600}
+#moduleLeader .strow.bs-row .c-p{flex:none;width:56px;display:inline-flex;align-items:center;font-style:normal;font-size:10px;font-weight:500;color:#8aa2bd}
+#moduleLeader .strow.bs-row .c-y .lb{flex:none;width:26px;margin-right:4px;text-align:left}
+#moduleLeader .strow.bs-row .c-p .lb{flex:none;width:12px;margin-right:5px;text-align:left}
+#moduleLeader .strow.bs-row .c-y i.yoy{display:block;flex:1;min-width:0;text-align:left;font-size:11px}
+#moduleLeader .strow.bs-row .c-p .pv{display:block;flex:1;min-width:0;text-align:left}
+#moduleLeader .bs-cols-head{display:flex;justify-content:flex-end;font-size:10.5px;color:#7a8ba6;
+  padding:4px 0 2px;border-bottom:1px solid #d9e6f5;letter-spacing:1px}
+#moduleLeader .bs-cols-head .c-v{flex:none;width:88px;text-align:right}
+#moduleLeader .bs-cols-head .c-y{flex:none;width:84px;text-align:right}
+#moduleLeader .bs-cols-head .c-p{flex:none;width:56px;text-align:right}
+#moduleLeader .strow.bs-row .c-y i.yoy.flat{color:#9db3c8}
+#moduleLeader .bkgrid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+/* 2026-10-21 银行页饼/环 + 明细行复合单元：上环下明细（构成类指标标准布局） */
+#moduleLeader .donutwrap{display:grid;grid-template-columns:minmax(190px,44%) 1fr;gap:8px 12px;align-items:center}
+#moduleLeader .donut-center{position:relative}
+#moduleLeader .donut-total{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+#moduleLeader .donut-total b{font-size:19px;font-weight:800;color:#17427d;font-variant-numeric:tabular-nums;letter-spacing:.2px}
+#moduleLeader .donut-total small{font-size:10.5px;color:var(--dim);margin-top:1px}
+#moduleLeader .donut-total.sm b{font-size:15px}
+#moduleLeader .donut-total.sm small{font-size:9.5px}
+/* 2026-10-27 固有资金运用构成：右侧五列明细（指标名称/值/同比/较年初/占比）表格式对齐 */
+#moduleLeader .fund-grid{display:flex;flex-direction:column;font-size:11.3px}
+#moduleLeader .fund-row{display:grid;grid-template-columns:1.9fr .76fr .72fr .72fr .5fr;gap:4px;align-items:center;padding:3.5px 2px;border-bottom:1px dashed #e8eef6}
+#moduleLeader .fund-row:last-child{border-bottom:none}
+#moduleLeader .fund-hd{color:var(--dim);font-size:10px;font-weight:600;border-bottom:1px solid #d8e3f0;padding:2px}
+#moduleLeader .fund-row .n{display:flex;align-items:center;gap:5px;min-width:0;color:var(--dim2);white-space:normal;line-height:1.3}
+#moduleLeader .fund-row .n i{width:8px;height:8px;border-radius:2px;flex:none}
+#moduleLeader .fund-row .v{text-align:right;font-weight:700;color:#17427d;font-variant-numeric:tabular-nums;white-space:nowrap}
+#moduleLeader .fund-row .y{text-align:right;font-style:normal;font-size:10.5px;white-space:nowrap}
+#moduleLeader .fund-row .pc{text-align:right;color:var(--dim);font-variant-numeric:tabular-nums}
+/* ④ 规模与业务结构一行三卡（g3 窄栏）：明细字号/行距压缩，名称列占比再放大 */
+#v-trust .grid.g3 .fund-grid{font-size:10.6px}
+#v-trust .grid.g3 .fund-row{grid-template-columns:2.1fr .72fr .68fr .68fr .5fr;padding:3px 1px}
+#v-trust .grid.g3 .fund-row .v,#v-trust .grid.g3 .fund-row .y,#v-trust .grid.g3 .fund-row .pc{font-size:10.2px}
+/* 指标卡片统一为华润金融 tab（.fkk）样式（2026-10-26 需求）：
+   渐变蓝卡头（白点 + ★/口径徽标）→ 白卡体=蓝色渐变大字 + 红涨绿跌小注；悬停上浮；
+   gold/ok/amber 变体仅换卡头渐变色与数值语义色，结构与金融卡一致 */
+#moduleLeader .stx{position:relative;overflow:hidden;
+  background:#fff;border:1px solid #cfe3f8;border-radius:8px;padding:0 13px 11px;margin:0;
+  display:flex;flex-direction:column;gap:6px;box-shadow:0 2px 10px rgba(30,120,220,.10);
+  transition:transform .2s,box-shadow .2s}
+#moduleLeader .stx:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(30,120,220,.18)}
+#moduleLeader .stx .t{display:flex;align-items:center;gap:7px;margin:0 -13px 0;padding:7px 12px;
+  background:linear-gradient(90deg,#39a1f7,#0d6ef0);color:#fff;
+  font-size:12px;font-weight:700;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#moduleLeader .stx .t::before{content:'';width:6px;height:6px;border-radius:50%;background:#fff;
+  box-shadow:0 0 5px rgba(255,255,255,.9);flex:none}
+#moduleLeader .stx .t .kstar{color:#ffe2ae;font-size:11px}
+/* 业绩合同六卡（一行6卡，2026-10-27）：长指标名换行完整显示，不截断 */
+#moduleLeader .stx.c6 .t{white-space:normal;font-size:11.5px;letter-spacing:.3px;line-height:1.35;padding:6px 10px;align-items:flex-start}
+#moduleLeader .stx.c6 .t::before{margin-top:5px}
+#moduleLeader .stx.c6 .v{font-size:20px}
+#moduleLeader .stx.gold .t{background:linear-gradient(90deg,#f7b955,#e8820d)}
+#moduleLeader .stx.ok .t{background:linear-gradient(90deg,#31c88f,#0b9d6e)}
+#moduleLeader .stx.amber .t{background:linear-gradient(90deg,#f7a939,#c2620e)}
+#moduleLeader .stx .v{display:flex;align-items:baseline;gap:3px;font-size:24px;font-weight:800;letter-spacing:.5px;line-height:1.12;
+  font-variant-numeric:tabular-nums;background:linear-gradient(135deg,#0d6ef0,#39a1f7);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+#moduleLeader .stx .v small{font-size:11px;color:#8aa2bd;font-weight:500;letter-spacing:0;
+  -webkit-text-fill-color:#8aa2bd}
+#moduleLeader .stx.gold .v{background:linear-gradient(135deg,#c2620e,#f59e0b);-webkit-background-clip:text;background-clip:text}
+#moduleLeader .stx.ok .v{background:linear-gradient(135deg,#0b7a55,#0f9d6e);-webkit-background-clip:text;background-clip:text}
+#moduleLeader .stx.amber .v{background:linear-gradient(135deg,#9a5b12,#c2620e);-webkit-background-clip:text;background-clip:text}
+/* 行内/卡内同比小注（收入构成 strow 内跟随数值；stx 卡内换行居左） */
+#moduleLeader i.yoy{font-style:normal;font-size:11px;font-weight:600;margin-left:6px;white-space:nowrap}
+#moduleLeader .stx i.yoy{display:block;margin:2px 0 0}
+/* stx 卡内「同比 + 较年初」双小注一行并排 */
+#moduleLeader .stx .drow{display:flex;gap:12px;margin-top:3px;position:relative;z-index:1}
+#moduleLeader .stx .drow i.yoy{display:inline;margin:0;font-size:10.5px}
+/* stx 卡金融页式排版（2026-10-27 银行 tab）：口径标签行（本月末/本年累计）+ .dlst=「同比 / 较年初」变动小注；
+   2026-10-27 三轮：两项同行横排；单项时值紧跟标签（不再 space-between 拉满整行） */
+#moduleLeader .stx .s-lbl{font-size:11px;color:#51678a;letter-spacing:1px}
+#moduleLeader .stx .dlst{display:flex;flex-wrap:nowrap;align-items:baseline;gap:12px;margin-top:1px;position:relative;z-index:1}
+#moduleLeader .stx .s-dlt{display:inline-flex;align-items:baseline;gap:2px;flex:none;
+  font-size:10.5px;color:#51678a;white-space:nowrap}
+#moduleLeader .stx .s-dlt em{font-style:normal;font-weight:700;font-variant-numeric:tabular-nums}
+#moduleLeader .stx .s-dlt em.up{color:var(--up)}
+#moduleLeader .stx .s-dlt em.down{color:var(--down)}
+#moduleLeader .stx .s-dlt em.flat{color:var(--dim)}
+/* stx 卡同業対比（2026-10-28 银行效益三卡：金监总局《商业银行主要监管指标情况表》行业均值）
+   数值行右侧三行小柱：口径标签「商业银行」/ 行业值 / 优·逊同业徽标（悬停 title 注来源与期次） */
+#moduleLeader .stx .v .peer{margin-left:auto;align-self:center;display:flex;flex-direction:column;
+  align-items:flex-end;gap:2px;letter-spacing:0;line-height:1.25;cursor:help;white-space:nowrap;
+  -webkit-text-fill-color:#51678a}
+#moduleLeader .stx .v .peer i{font-style:normal;font-size:9.5px}
+#moduleLeader .stx .v .peer b{font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums;
+  color:#17427d;-webkit-text-fill-color:#17427d}
+#moduleLeader .stx .v .peer em.pk{font-style:normal;font-size:9px;font-weight:700;border-radius:3px;padding:0 4px}
+#moduleLeader .stx .v .peer em.pk.good{color:#0b7a55;background:#e2f5ec;-webkit-text-fill-color:#0b7a55}
+#moduleLeader .stx .v .peer em.pk.bad{color:#b25a12;background:#fdeede;-webkit-text-fill-color:#b25a12}
+/* 同业对比徽标胶囊（2026-10-29 按需求：「商业银行」改「同行业」+ 样式升级）：
+   浅蓝底圆角胶囊=呼吸点 + 「同行业」小标签 + 藏蓝加粗行业值，与金融卡蓝系呼应，悬停注来源期次 */
+#moduleLeader .stx .v .peer.pkr{flex-direction:row;align-items:center;gap:5px;white-space:nowrap;
+  background:linear-gradient(180deg,#f2f7fe,#e9f1fc);border:1px solid #d7e5f7;border-radius:999px;
+  padding:2px 9px 2px 7px;line-height:1.5;box-shadow:inset 0 1px 0 #fff}
+#moduleLeader .stx .v .peer.pkr .pk-lb{display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;color:#51678a;letter-spacing:.5px}
+#moduleLeader .stx .v .peer.pkr .pk-lb::before{content:'';width:5px;height:5px;border-radius:50%;
+  background:#39a1f7;flex:none}
+#moduleLeader .stx .v .peer.pkr b{font-size:12px;color:#17427d;-webkit-text-fill-color:#17427d}
+#moduleLeader .stx .v .peer.pkr b small{font-size:9px;margin-left:0}
+/* stx 卡迷你趋势（2026-10-28 银行定价卡：值行右缘 sparkline，逐点悬停出原生 title 显示月份+值） */
+#moduleLeader .stx .v .spark{margin-left:auto;align-self:center;line-height:0;flex:none}
+#moduleLeader .stx .v .spark svg{display:block}
+/* stx 卡分母注（2026-10-28 低成本存款占比卡：右侧「分母：科目名」+ 分母当期值，直读台账） */
+#moduleLeader .stx .v .peer.dn{white-space:normal;max-width:118px;text-align:right}
+#moduleLeader .stx .v .peer b small{font-size:9px;font-weight:500;color:#8aa2bd;-webkit-text-fill-color:#8aa2bd;margin-left:1px}
+/* 监管红线卡「监管要求」行样式 2026-10-28 随监管红线监测模块删除（无调用方） */
+/* stx 预算行（2026-10-27 银行 tab 按需求）：左「预算」标签 → 中=蓝色渐变达成进度条（与卡头同色系，条内/条右显示达成%）→ 右=预算值 */
+#moduleLeader .stx .budrow{display:flex;align-items:center;gap:7px;margin-top:2px;position:relative;z-index:1}
+#moduleLeader .stx .budrow .bl{font-size:10.5px;color:#51678a;flex:none;letter-spacing:1px}
+#moduleLeader .stx .budrow .bbar{position:relative;flex:1;min-width:0;height:13px;border-radius:7px;
+  background:#e9f1fb;box-shadow:inset 0 1px 2px rgba(23,66,125,.08);overflow:visible}
+#moduleLeader .stx .budrow .bbar i{position:absolute;left:0;top:0;bottom:0;border-radius:7px;
+  background:linear-gradient(90deg,#39a1f7,#0d6ef0)}
+#moduleLeader .stx .budrow .bbar b{position:absolute;font-size:9.5px;font-weight:800;line-height:13px;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+#moduleLeader .stx .budrow .bbar .b-in{transform:translateX(-100%);color:#fff}
+#moduleLeader .stx .budrow .bbar .b-out{color:#0d6ef0}
+#moduleLeader .stx .budrow .bval{font-size:11.5px;font-weight:800;color:#17427d;flex:none;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+#moduleLeader .stx .budrow .bval small{font-size:10px;color:#8aa2bd;font-weight:500;margin-left:2px}
+#moduleLeader .strow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:7px 2px;
+  border-bottom:1px dashed #e2ebf6;font-size:12.5px;color:var(--dim2)}
+#moduleLeader .strow:last-child{border-bottom:none}
+#moduleLeader .strow b{color:#17427d;font-weight:800;font-size:13.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#moduleLeader .kstar{color:#f59e0b;font-style:normal;font-size:11px;margin-left:3px}
+/* 与同行图表卡等高：cbd 撑满并把行间距均匀拉开，避免卡底大片空白（条线成本与回报） */
+#moduleLeader .card.fillrow{display:flex;flex-direction:column}
+#moduleLeader .card.fillrow>.cbd{flex:1;display:flex;flex-direction:column;justify-content:space-evenly}
+#moduleLeader .card.fillrow>.cbd .strow{padding:10px 2px}
+@media(max-width:1150px){#moduleLeader .stgrid2{grid-template-columns:1fr}#moduleLeader .stgrid,#moduleLeader .stgrid-4{grid-template-columns:repeat(2,1fr)}#moduleLeader .bkgrid6{grid-template-columns:repeat(3,1fr)}}
+#moduleLeader .chip{font-size:12px;color:#33547e;background:#f1f6fc;border:1px solid var(--line);border-radius:14px;padding:4px 12px}
+#moduleLeader .chip b{color:var(--blue2);font-weight:700;margin-left:6px;font-variant-numeric:tabular-nums}
+/* ---- 监管红线 / 进度 ---- */
+#moduleLeader .riskrow{display:grid;grid-template-columns:150px 1fr 72px 96px 74px;gap:12px;align-items:center;
+  padding:9px 0;border-bottom:1px dashed #e2ebf6;font-size:13px}
+#moduleLeader .riskrow:last-child{border-bottom:none}
+#moduleLeader .meter{height:10px;background:#e8eef7;border-radius:5px;position:relative;overflow:hidden}
+#moduleLeader .meter i{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+#moduleLeader .meter .limit{position:absolute;top:-2px;bottom:-2px;width:2px;background:#5b7ba6;opacity:.8}
+#moduleLeader .riskrow .num{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
+#moduleLeader .riskrow .lim{color:var(--dim);text-align:right;font-size:12px;white-space:nowrap}
+#moduleLeader .st{font-size:12px;padding:2px 9px;border-radius:10px;text-align:center;white-space:nowrap;font-weight:600}
+#moduleLeader .riskcols{display:grid;grid-template-columns:1fr 1fr;grid-auto-flow:column;grid-template-rows:repeat(5,auto);column-gap:0}
+#moduleLeader .riskcols .riskrow{grid-template-columns:96px 1fr 52px 62px 56px;gap:7px;font-size:12px;padding:6px 0}
+#moduleLeader .riskcols .riskrow .st{padding:1px 7px;font-size:11.5px}
+#moduleLeader .riskcols > .riskrow:nth-child(-n+5){border-right:1px solid #e2ebf6;padding-right:16px}
+#moduleLeader .riskcols > .riskrow:nth-child(n+6){padding-left:16px}
+@media(max-width:1150px){#moduleLeader .riskcols{grid-template-columns:1fr;grid-auto-flow:row;grid-template-rows:none}
+#moduleLeader .riskcols > .riskrow:nth-child(-n+5){border-right:none;padding-right:0}
+#moduleLeader .riskcols > .riskrow:nth-child(n+6){padding-left:0}}
+#moduleLeader .st-ok{background:var(--ok-bg);color:var(--ok-fg);border:1px solid var(--ok-line)}
+#moduleLeader .st-warn{background:var(--warn-bg);color:var(--warn-fg);border:1px solid var(--warn-line)}
+#moduleLeader .st-bad{background:var(--bad-bg);color:var(--bad-fg);border:1px solid var(--bad-line)}
+#moduleLeader .prog{margin-top:12px}
+#moduleLeader .prog .pl{display:flex;justify-content:space-between;font-size:12px;color:var(--dim2);margin-bottom:5px}
+#moduleLeader .prog .pl span:last-child{color:var(--text);font-variant-numeric:tabular-nums;font-weight:600}
+#moduleLeader .prog .pb{height:8px;background:#e8eef7;border-radius:4px;overflow:hidden}
+#moduleLeader .prog .pb i{display:block;height:100%;border-radius:4px;
+  background:var(--gold-bright)}
+#moduleLeader .kv-big{font-size:22px;font-weight:800;display:flex;align-items:baseline;gap:4px;font-variant-numeric:tabular-nums;
+  color:#17427d}
+#moduleLeader .kv-big small{font-size:11px;color:var(--dim);font-weight:500}
+#moduleLeader .kl{font-size:12px;color:var(--dim2)}
+@media(max-width:1150px){
+#moduleLeader #north{grid-template-columns:repeat(3,1fr)}
+#moduleLeader .g2,#moduleLeader .g3{grid-template-columns:1fr}
+#moduleLeader .bukpis{grid-template-columns:repeat(2,1fr)}
+#moduleLeader .riskrow{grid-template-columns:120px 1fr 60px 80px 66px}
+}
+
+/* 华润金融组合图悬停浮层（body 级定位；对齐平台驾驶舱-华润资产「关注类资产总额」.gk-t12-tip：
+   深蓝玻璃 · 月份下横线分隔 · 值金色加粗 · 同比红涨绿跌；一行数据+同比同时显示） */
+.ld-tip{position:fixed;z-index:999;pointer-events:none;min-width:126px;
+  background:linear-gradient(160deg,rgba(16,42,84,.96),rgba(9,24,52,.96));
+  border:1px solid rgba(90,160,255,.5);border-radius:7px;padding:6px 11px 8px;
+  box-shadow:0 8px 22px rgba(4,20,50,.5),0 0 0 3px rgba(64,140,255,.12);
+  backdrop-filter:blur(4px);color:#dfeaff;font-size:11px;
+  display:none;flex-direction:column;gap:3px}
+.ld-tip b{font-size:11px;color:#fff;letter-spacing:1px;border-bottom:1px solid rgba(120,170,255,.35);padding-bottom:3px;margin-bottom:2px}
+.ld-tip span{display:flex;justify-content:space-between;align-items:baseline;gap:14px;color:#9fc0ea}
+.ld-tip i{font-style:normal;font-weight:800;color:#ffd479;font-size:12px}
+.ld-tip i.up{color:#ff8d96}
+.ld-tip i.down{color:#57e8b8}
+/* 风险四图堆叠浮层：合计行（分隔线+白值）+ 同比行 + 逐家明细行（色点+名+值）。
+   浮层挂载在 body 下（不在 #moduleLeader 内），选择器需带 .ld-tip 前缀、不能限域 */
+.ld-tip .seg .dotc{width:7px;height:7px;border-radius:2px;display:inline-block;margin-right:6px;flex:none}
+.ld-tip .seg.sum{border-top:1px solid rgba(120,170,255,.35);padding-top:4px;margin-top:2px}
+.ld-tip .seg.sum i{color:#fff}
+.ld-tip .seg .lab{display:flex;align-items:center;color:#9fc0ea}
+.ld-tip .seg i{color:#eaf4ff;font-size:11.5px}
+/* 卡头来源色签行（风险四图：全部=看构成，点单家=只看该家走势） */
+#moduleLeader .srcrow{display:flex;flex-wrap:wrap;gap:6px;padding:11px 15px 2px}
+#moduleLeader .src{display:inline-flex;align-items:center;font-size:11.5px;color:#4a648c;cursor:pointer;user-select:none;
+  background:#f2f6fb;border:1px solid var(--line);border-radius:999px;padding:3px 10px;transition:border-color .15s,color .15s}
+#moduleLeader .src b{margin-left:6px;color:#17427d;font-weight:700;font-variant-numeric:tabular-nums}
+#moduleLeader .src:hover{border-color:#7fb0e0;color:#17427d}
+#moduleLeader .src.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,#17427d,#2f7fd6);box-shadow:0 3px 8px rgba(23,66,125,.28)}
+/* 2026-10-27 按需求：银行 tab 页签选中态改用与卡片名称栏一致的背景蓝渐变 */
+#moduleLeader #v-bank .src.on{background:linear-gradient(90deg,#39a1f7,#0d6ef0);box-shadow:0 3px 8px rgba(13,110,240,.30)}
+#moduleLeader .src.on b{color:#fff}
+/* ---- 华润金融 tab 指标卡 fkk（2026-10-26 按需求参考驾驶舱指标卡样式整体优化）----
+   渐变蓝卡头（白点+口径徽标+ⓘ）→ 体=大数值（蓝渐变大字+单位）+ 浅灰统计行（口径/同比/环比/较年初）；
+   红涨绿跌沿用平台口径；悬停上浮 */
+#moduleLeader .fkk{background:#fff;border:1px solid #cfe3f8;border-radius:8px;overflow:hidden;
+  box-shadow:0 2px 10px rgba(30,120,220,.10);display:flex;flex-direction:column;
+  transition:transform .2s,box-shadow .2s}
+#moduleLeader .fkk:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(30,120,220,.18)}
+#moduleLeader .fkk-h{display:flex;align-items:center;gap:8px;padding:8px 12px;
+  background:linear-gradient(90deg,#39a1f7,#0d6ef0);color:#fff;font-size:13px;font-weight:700;letter-spacing:1px}
+#moduleLeader .fkk-h::before{content:'';width:7px;height:7px;border-radius:50%;background:#fff;
+  box-shadow:0 0 6px rgba(255,255,255,.9);flex:none}
+#moduleLeader .fkk-h .fkk-info{margin-left:auto;font-size:11px;opacity:.75;font-weight:400}
+#moduleLeader .fkk-kal{font-size:10px;font-weight:600;background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.55);border-radius:3px;padding:0 6px;line-height:15px;flex:none;letter-spacing:0}
+#moduleLeader .fkk-b{display:flex;flex-direction:column;gap:7px;padding:11px 13px 12px;flex:1}
+#moduleLeader .fkk-l{display:flex;align-items:baseline;gap:10px;font-size:12px}
+#moduleLeader .fkk-l .fkk-cap{color:#51678a;flex:none}
+#moduleLeader .fkk-v{display:flex;align-items:baseline;gap:3px;min-width:0}
+#moduleLeader .fkk-v b{font-size:24px;font-weight:800;line-height:1.1;letter-spacing:.5px;font-variant-numeric:tabular-nums;
+  background:linear-gradient(135deg,#0d6ef0,#39a1f7);-webkit-background-clip:text;background-clip:text;color:transparent}
+#moduleLeader .fkk-v small{font-size:11px;color:#8aa2bd;font-weight:500}
+#moduleLeader .fkk-dwrap{margin-left:auto;display:flex;align-items:baseline;gap:12px;flex:none}
+#moduleLeader .fkk-dl{display:inline-flex;align-items:baseline;gap:4px;color:#51678a;font-size:11px;white-space:nowrap}
+#moduleLeader .fkk-d{font-weight:700;white-space:nowrap;font-size:12px;font-variant-numeric:tabular-nums}
+#moduleLeader .fkk-d.up{color:var(--up)}
+#moduleLeader .fkk-d.down{color:var(--down)}
+#moduleLeader .fkk-d.flat{color:var(--dim)}
+#moduleLeader .fkk-note{font-size:10.5px;color:#8aa2bd;border-top:1px dashed #e4eefb;padding-top:6px;margin-top:1px}
+/* 集中度六小卡（2026-10-26 按需求：六指标六卡并列，卡内近4季度柱状趋势+环比pct） */
+#moduleLeader .conc-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+/* 2026-10-26 按需求：名称样式对齐核心六卡（fkk 蓝渐变卡头），内容趋势改折线图 */
+#moduleLeader .conc-card{background:#fff;border:1px solid #cfe3f8;border-radius:8px;overflow:hidden;min-width:0;
+  box-shadow:0 2px 10px rgba(30,120,220,.10);display:flex;flex-direction:column;
+  transition:transform .2s,box-shadow .2s}
+#moduleLeader .conc-card:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(30,120,220,.18)}
+#moduleLeader .conc-card .cc-b{padding:9px 10px 8px}
+/* 2026-10-26 按需求：季度标签移到指标值上方独立一行 */
+#moduleLeader .conc-card .cc-q{display:inline-block;font-size:10px;color:var(--dim2);margin:0 0 2px}
+/* 卡头沿用 fkk-h 蓝渐变样式（名称与 ROA 一致）；六卡较窄→字号收小、长名可换行 */
+#moduleLeader .conc-card .conc-h{font-size:11.5px;letter-spacing:0;padding:7px 9px;line-height:1.35;min-height:34px}
+#moduleLeader .conc-card .cc-v{display:flex;align-items:baseline;gap:4px;margin:0 0 5px}
+#moduleLeader .conc-card .cc-v b{font-size:19px;font-weight:800;color:#17427d;font-variant-numeric:tabular-nums}
+#moduleLeader .conc-card .cc-v small{font-size:10.5px;color:var(--dim)}
+#moduleLeader .conc-card .cc-ch{height:72px}
+@media(max-width:1150px){#moduleLeader .conc-grid{grid-template-columns:repeat(3,1fr)}}
+/* 2026-10-26 核心六卡纵排变体（按参考图）：口径标签 → 大数值 → 「变动标签: 值↑」（口径徽标从卡头移入卡体第一行） */
+#moduleLeader .fkk-st{display:flex;flex-direction:column;gap:3px}
+#moduleLeader .fkk-st .s-lbl{font-size:11px;color:#51678a;letter-spacing:1px}
+#moduleLeader .fkk-st .s-val{display:flex;align-items:baseline;gap:3px}
+#moduleLeader .fkk-st .s-val b{font-size:26px;font-weight:800;line-height:1.12;letter-spacing:.5px;font-variant-numeric:tabular-nums;
+  background:linear-gradient(135deg,#0d6ef0,#39a1f7);-webkit-background-clip:text;background-clip:text;color:transparent}
+#moduleLeader .fkk-st .s-val small{font-size:11px;color:#8aa2bd;font-weight:500}
+#moduleLeader .fkk-st .s-dlt{font-size:11.5px;color:#51678a;white-space:nowrap}
+/* 同比+较年初 双小注强制一行（净资产/总资产/资产负债率三卡）：不换行，窄卡下字号收至 11px、间距 8px 保证容纳 */
+#moduleLeader .fkk-st .s-dlrow{display:flex;align-items:baseline;gap:8px;flex-wrap:nowrap}
+#moduleLeader .fkk-st .s-dlrow .s-dlt{font-size:11px}
+#moduleLeader .fkk-st .s-dlrow em{margin-left:1px}
+#moduleLeader .fkk-st .s-dlt em{font-style:normal;font-weight:700;font-variant-numeric:tabular-nums}
+#moduleLeader .fkk-st .s-dlt em.up{color:var(--up)}
+#moduleLeader .fkk-st .s-dlt em.down{color:var(--down)}
+#moduleLeader .fkk-st .s-dlt em.flat{color:var(--dim)}
+/* 年度考核指标表（华润金融页；深蓝大屏风格） */
+#moduleLeader .ko-wrap{overflow-x:auto}
+#moduleLeader .ko-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:980px}
+#moduleLeader .ko-table thead th{background:linear-gradient(180deg,#eaf2fc,#f5f9ff);
+  color:#17427d;font-weight:700;letter-spacing:1px;padding:9px 12px;text-align:left;
+  border-bottom:1px solid #c8d9ee;white-space:nowrap}
+#moduleLeader .ko-table thead th.num{text-align:right}
+#moduleLeader .ko-table td{padding:8px 12px;border-bottom:1px solid #e6edf6;color:var(--text);vertical-align:middle}
+#moduleLeader .ko-table tbody tr:hover{background:#f2f7fd}
+#moduleLeader .ko-bu{color:var(--gold);font-weight:700;font-size:13px;letter-spacing:1px;white-space:nowrap;
+  border-right:1px solid #e6edf6}
+#moduleLeader .ko-nm{max-width:320px}
+#moduleLeader .ko-un{color:var(--dim);white-space:nowrap}
+#moduleLeader .ko-v,#moduleLeader .ko-b{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+#moduleLeader .ko-v{color:#17427d;font-weight:800}
+#moduleLeader .ko-b{color:var(--dim2)}
+#moduleLeader .ko-r{text-align:right;white-space:nowrap}
+/* 列间竖线 */
+#moduleLeader .ko-table thead th:not(:last-child),#moduleLeader .ko-table td:not(:last-child){border-right:1px solid #e6edf6}
+/* 业务单元利润表（2026-10-28）：分组表头居中、指标组间加粗分隔、合计行浅蓝底 */
+#moduleLeader .bu-pl-table thead tr:first-child th[colspan]{text-align:center;letter-spacing:2px}
+#moduleLeader .bu-pl-table thead th:nth-child(1),#moduleLeader .bu-pl-table td:nth-child(1){border-right:1px solid #c8d9ee}
+#moduleLeader .bu-pl-table thead th:nth-child(2),#moduleLeader .bu-pl-table td:nth-child(2),
+#moduleLeader .bu-pl-table thead th:nth-child(5),#moduleLeader .bu-pl-table td:nth-child(5){border-left:2px solid #c8d9ee}
+#moduleLeader .bu-pl-table thead tr:nth-child(2) th{font-size:11.5px;font-weight:600;color:#33547e}
+#moduleLeader .bu-pl-table .bu-pl-sum td{background:#f0f6fd;font-weight:700;border-top:2px solid #c8d9ee;border-bottom:none}
+/* 预算达成率：结构/配色对齐 数据应用-固定报表 renderProgressCell（浅色商务版） */
+#moduleLeader .progress-bar-wrap{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+#moduleLeader .progress-bar{flex:none;width:80px;height:6px;background:#e8eef7;border-radius:3px;overflow:hidden}
+#moduleLeader .progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#10b981,#34d399)}
+#moduleLeader .progress-fill.mid{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+#moduleLeader .progress-fill.low{background:linear-gradient(90deg,#ef4444,#f87171)}
+#moduleLeader .progress-text{font-size:11px;font-weight:600;min-width:44px;text-align:left;color:#33547e;font-variant-numeric:tabular-nums}
+#moduleLeader .ko-y{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+#moduleLeader .ko-y.up{color:#d64550}
+#moduleLeader .ko-y.down{color:#0f9d6e}
+#moduleLeader .ko-y.flat{color:var(--dim)}
+/* ---- 资产 tab（2026-10-13 重构）：口径切换 chips / 卡内预算达成条 / 同环比文字 ---- */
+#moduleLeader .ascal{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+#moduleLeader .ascal .lab{font-size:12px;color:var(--dim);letter-spacing:1px;margin-right:2px}
+#moduleLeader .as-rate{display:flex;align-items:center;gap:8px;margin-top:8px;position:relative;z-index:1}
+#moduleLeader .as-rate .progress-bar{width:auto;flex:1}
+#moduleLeader .as-rate .rt{font-size:11px;color:var(--dim2);white-space:nowrap;font-variant-numeric:tabular-nums}
+#moduleLeader .stx .yoy{font-size:11px;font-weight:600}
+#moduleLeader .stx .yoy.up{color:var(--up)}
+#moduleLeader .stx .yoy.down{color:var(--down)}
+</style>
+</head>
+<body>
+
+<!-- Header（与 index.html 同款；仅保留数据应用入口，无其他模块菜单） -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">华</div>
+    <div>
+      <h1>金控指标体系数据应用平台</h1>
+      <div class="header-sub">Financial Holdings Indicator System · Data Application Platform</div>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <button class="topnav-item active" type="button">数据应用</button>
+  </nav>
+</div>
+
+<div class="module" id="moduleData">
+  <div class="layout">
+    <aside class="sidebar" id="tabsWrap"></aside>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+
+<!-- 指标标准库数据源（与 index.html 相同：预算指标清单按业务单元从中筛选加载） -->
+<script src="sheets_data.js"></script>
+<script src="asset_sheets_data.js"></script>
+<script src="trust_sheets_data.js"></script>
+<script src="insurance_sheets_data.js"></script>
+<script src="lease_sheets_data.js"></script>
+
+<script>
+/* ===== 业务单元常量与页面状态（与 index.html 同源） ===== */
+const BUDGET_UNITS = [
+  {key:'bank',  label:'华润银行', codePrefix:'STR_CRB', src:()=> (typeof SHEETS!=='undefined'?SHEETS:null)},
+  {key:'asset', label:'华润资产', codePrefix:'STR_CRA', src:()=> (typeof ASSET_SHEETS!=='undefined'?ASSET_SHEETS:null)},
+  {key:'trust', label:'华润信托', codePrefix:'STR_CRT', src:()=> (typeof TRUST_SHEETS!=='undefined'?TRUST_SHEETS:null)},
+  {key:'ins',   label:'华润保险', codePrefix:'STR_CRI', src:()=> (typeof INSURANCE_SHEETS!=='undefined'?INSURANCE_SHEETS:null)},
+  {key:'lease', label:'华润租赁', codePrefix:'STR_CRL', src:()=> (typeof LEASE_SHEETS!=='undefined'?LEASE_SHEETS:null)}
+];
+const budState = { year: 2027, unit: 'bank', vals: {}, editing: false, showErr: false }; // vals: 'year|unit|指标名称' → 填报值（会话内暂存草稿）；editing: 是否可填写；showErr: 提交校验未过红框提示
+
+const BUDGET_KEY = 'bud-fill';
+
+
+/* ===== 依赖函数（抽取自 index.html，逻辑零改动） ===== */
+function menuName(s){
+  return s.name.replace(/[(（]\s*\d+\s*个\s*[)）]\s*$/, '').trim();
+}
+
+function panelName(s){
+  return menuName(s).replace(/^\d+\s*[-—－.、:：]\s*/, '').trim();
+}
+
+function hideColsView(s, hideCols, src){
+  const base = src || s;
+  const row1 = s.headers[0], row2 = s.headers[1] || [];
+  const leaves = []; let j = 0;
+  row1.forEach(h=>{
+    const c = h.c || 1, r = h.r || 1;
+    for(let k=0;k<c;k++){
+      if(r > 1){ leaves.push({group:h.l, label:h.l, r:r}); }
+      else { leaves.push({group:h.l, label:(row2[j] ? row2[j].l : h.l), r:1}); j++; }
+    }
+  });
+  const hidden = [];
+  leaves.forEach((L,i)=>{
+    const key = (L.r > 1) ? L.group : (L.group + '/' + L.label);
+    if(hideCols.indexOf(key) >= 0) hidden.push(i);
+  });
+  if(!hidden.length) return {headers:s.headers, rows:base.rows, levels:base.levels, spans:base.spans};
+  const keep = leaves.filter((L,i)=>hidden.indexOf(i) < 0);
+  const h1 = [], h2 = [];
+  let i = 0;
+  while(i < keep.length){
+    const L = keep[i];
+    if(L.r > 1){ h1.push({l:L.group, r:L.r}); i++; continue; }
+    let e = i;
+    while(e < keep.length && keep[e].r <= 1 && keep[e].group === L.group) e++;
+    h1.push({l:L.group, c:e - i});
+    for(let k=i;k<e;k++) h2.push({l:keep[k].label});
+    i = e;
+  }
+  const rows = (base.rows || []).map(r=>r.filter((v,idx)=>hidden.indexOf(idx) < 0));
+  let spans = base.spans;
+  if(spans){
+    spans = spans.map(sp=>Object.assign({}, sp, {col: sp.col - hidden.filter(h=>h < sp.col).length}));
+  }
+  return {headers:[h1,h2], rows:rows, levels:base.levels, spans:spans};
+}
+
+function ledgerBaseView(s, ci){
+  if(s.calibers && s.calibers.length){
+    const c = s.calibers[ci||0] || s.calibers[0];
+    const hide = (s.hideCols||[]).concat(c.hideCols||[]);
+    return hide.length ? hideColsView(s, hide, c) : {headers:s.headers, rows:c.rows, levels:c.levels, spans:c.spans};
+  }
+  return s.hideCols ? hideColsView(s, s.hideCols) : s;
+}
+
+function ledgerLeaves(view){
+  const row1 = view.headers[0], row2 = view.headers[1] || [];
+  const cols = [];
+  let j = 0;
+  row1.forEach(h=>{
+    const c = h.c||1, r = h.r||1;
+    for(let k=0;k<c;k++){
+      cols.push({group:h.l, label:(r>1 ? h.l : (row2[j] ? row2[j].l : h.l))});
+      if(r <= 1) j++;
+    }
+  });
+  return cols;
+}
+
+function budLatestDate(){
+  const d = new Date();
+  const last = new Date(d.getFullYear(), d.getMonth(), 0); // 本月第 0 天 = 上月末
+  const p = n => (n < 10 ? '0' + n : '' + n);
+  return last.getFullYear() + '-' + p(last.getMonth() + 1) + '-' + p(last.getDate());
+}
+
+function budIndicatorRows(unit){
+  const u = BUDGET_UNITS.find(x => x.key === unit);
+  const col = u ? u.src() : null;
+  if(!col) return [];
+  const out = []; const seen = {};
+  Object.keys(col).forEach(sk=>{
+    const s = col[sk];
+    const view = ledgerBaseView(s, 0);
+    const leaves = ledgerLeaves(view);
+    const idx = lab => leaves.findIndex(L => L.label === lab);
+    const nameI = idx('指标名称'), unitI = idx('单位'), tagI = idx('指标属性标签');
+    let actI = leaves.findIndex(L => L.label === '实际' && /截止/.test(L.group));
+    if(actI < 0) actI = leaves.findIndex(L => L.label === '实际');
+    if(nameI < 0 || tagI < 0) return;
+    (view.rows || []).forEach(r=>{
+      const nm = String(r[nameI] == null ? '' : r[nameI]).trim();
+      if(!nm) return;
+      const tag = String(r[tagI] == null ? '' : r[tagI]);
+      if(tag.indexOf('★') < 0 && tag !== '是') return;   // 【是否预算】筛选
+      if(seen[nm]) return; seen[nm] = 1;                  // 单元内去重
+      out.push({
+        sheet: s.title || panelName(s),
+        name: nm.replace(/^其中：/, ''),
+        rawName: nm,
+        unit: unitI >= 0 ? (r[unitI] || '') : '',
+        latest: actI >= 0 ? String(r[actI] == null ? '' : r[actI]).trim() : ''
+      });
+    });
+  });
+  /* 指标标准编号：单元前缀 + 按加载顺序编号（原型演示；实际环境对接指标清单唯一标准编号） */
+  out.forEach((it, i)=>{ it.code = u.codePrefix + '_' + String(i + 1).padStart(8, '0'); });
+  return out;
+}
+
+function renderBudgetPanel(){
+  const content = document.getElementById('content');
+  let panel = document.getElementById('panel-' + BUDGET_KEY);
+  const existed = !!panel && !!panel.parentNode;
+  const wasActive = existed && panel.classList.contains('active');
+  if(!panel) panel = document.createElement('div');
+  panel.className = 'sheet-panel';
+  panel.id = 'panel-' + BUDGET_KEY;
+
+  const y = budState.year, lastY = y - 1;
+  const unitLabel = (BUDGET_UNITS.find(x=>x.key===budState.unit) || BUDGET_UNITS[0]).label;
+  const rows = budIndicatorRows(budState.unit);
+  const latestDate = budLatestDate();
+
+  const curY = new Date().getFullYear();
+  const yList = [];
+  for(let yy = 2025; yy <= curY + 1; yy++) yList.push(yy);
+  if(yList.indexOf(y) < 0) yList.push(y);   // 保证已选年度始终在选项中
+  yList.sort((a,b)=>b-a);   // 倒序展示：最新年度在最前
+  const yOpts = yList.map(yy => `<option value="${yy}"${yy===y?' selected':''}>${yy} 年</option>`).join('');
+  const uOpts = BUDGET_UNITS.map(u => `<option value="${u.key}"${u.key===budState.unit?' selected':''}>${u.label}</option>`).join('');
+
+  const editing = !!budState.editing;
+
+  let html = `
+    <div class="panel-header">
+      <div class="panel-title">预算指标填报表 · ${unitLabel}</div>
+      <div class="panel-actions">
+        ${editing
+          ? `<button class="btn" data-action="bud-edit" type="button">🖊 编辑中 · 完成</button>`
+          : `<button class="btn" data-action="bud-edit" type="button">🖊 编辑</button>`}
+        <button class="btn" data-action="bud-submit" type="button">✅ 提交</button>
+        <button class="btn" data-action="bud-import" type="button" title="从 Excel/CSV 模板导入：按「指标名称」列匹配填充本年预算值">📤 导入</button>
+        <input type="file" id="budImportFile" accept=".xlsx,.xls,.csv" style="display:none">
+        <button class="btn" data-action="export" data-key="${BUDGET_KEY}" type="button">📥 导出</button>
+      </div>
+    </div>
+    <div class="bud-toolbar">
+      <div class="bud-field"><span class="bud-field-label">业务单元选择</span>
+        <select class="bud-select" id="budUnitSel"${editing?' disabled':''}>${uOpts}</select></div>
+      <div class="bud-field"><span class="bud-field-label">预算年度选择</span>
+        <select class="bud-select" id="budYearSel"${editing?' disabled':''}>${yOpts}</select></div>
+      <div class="bud-mode${editing?' edit':''}">${editing?'✏️ 编辑中（可填写全年预算值）':'👁 仅查看 · 点击「编辑」后可填写'}</div>
+    </div>
+    <div class="table-card"><div class="table-wrap">
+    <table class="data-table bud-table"><thead><tr>
+        <th>业务单元</th><th>指标标准编号</th><th>指标名称</th><th>指标单位</th>
+        <th>${lastY} 年预算值</th><th>最新实际值</th><th class="bud-req bud-hei">最新实际值日期</th>
+        <th class="bud-req"><span class="bud-req-star">*</span>${y} 年预算值</th>
+      </tr></thead>`;
+
+  if(!rows.length){
+    html += `<tbody><tr><td colspan="8"><div class="bud-empty-tip">未查询到匹配的数据，请先在指标标准库中去维护"是否有全年预算"值</div></td></tr>`;
+  } else {
+    html += `<tbody>`;
+    rows.forEach(it=>{
+      const dk = y + '|' + budState.unit + '|' + it.rawName;
+      const v = budState.vals[dk] || '';
+      const err = !!budState.showErr && v === '';
+      /* 上一年预算值：指标标准库无历史预算数据，统一以 -- 占位展示 */
+      const lastBud = '<span class="dim-dash">--</span>';
+      const latest = (it.latest && it.latest !== '-') ? it.latest : '<span class="dim-dash">--</span>';
+      html += `<tr>
+        <td>${unitLabel}</td>
+        <td><span class="bud-auto">${it.code}</span></td>
+        <td class="indicator-name lv0" title="${escHtml(it.rawName)}">${escHtml(it.name)}</td>
+        <td class="value">${escHtml(it.unit)}</td>
+        <td class="value">${lastBud}</td>
+        <td class="value">${latest}</td>
+        <td class="value">${latestDate}</td>
+        <td class="bud-must${editing?'':' ro'}"><div class="bud-input-wrap"><input class="bud-input${v ? ' filled' : ''}${editing?'':' ro'}${err?' bud-err':''}" data-budkey="${escHtml(dk)}" value="${escHtml(v)}" placeholder="${editing?'必填，全年预算值':''}" inputmode="decimal" ${editing?'':'readonly tabindex="-1"'} aria-label="${escHtml(it.name)} ${y} 年预算值">${err?'<div class="bud-err-tip">请输入预算值</div>':''}</div></td>
+      </tr>`;
+    });
+  }
+  html += `</tbody></table>
+    </div></div>
+    <div class="bud-note">
+      <p><b>填报说明：</b>各业务单元负责人负责填报所属业务单元预算指标的 <b>X年全年预算值</b>（标 <span class="bud-note-star">*</span> 列为必填项）；X-1 年预算值、最新实际值由系统自动加载（有数据时展示）。</p>
+      <p><b>注：</b>若存在需填报全年预算的指标，但未在本页面展示，请先联系开发人员，在指标标准库中将该指标的【是否有全年预算】字段维护为 "是"。</p>
+    </div>`;
+
+  panel.innerHTML = html;
+  if(!existed) content.appendChild(panel);
+  if(wasActive) panel.classList.add('active');
+}
+
+function budgetCollectInputs(){
+  const panel = document.getElementById('panel-' + BUDGET_KEY);
+  if(!panel) return;
+  panel.querySelectorAll('input.bud-input').forEach(inp=>{
+    budState.vals[inp.dataset.budkey] = inp.value.trim();
+  });
+}
+
+function budgetToggleEdit(){
+  budgetCollectInputs();
+  budState.editing = !budState.editing;
+  renderBudgetPanel();
+  if(budState.editing){
+    const f = document.querySelector('#panel-' + BUDGET_KEY + ' input.bud-input');
+    if(f) f.focus();
+  }
+}
+
+function budgetSubmit(){
+  budgetCollectInputs();
+  const rows = budIndicatorRows(budState.unit);
+  const missing = rows.filter(it => (budState.vals[budState.year + '|' + budState.unit + '|' + it.rawName] || '') === '');
+  if(missing.length){
+    budState.showErr = true;
+    budState.editing = true;   // 校验未过 → 进入编辑态，红框可直接补填
+    renderBudgetPanel();
+    showToast(`提交失败：还有 ${missing.length} 项「*${budState.year} 年预算值」未填报（必填）`);
+    return;
+  }
+  budState.showErr = false;
+  budState.editing = false;
+  renderBudgetPanel();
+  showToast('提交成功');
+}
+
+function loadSheetJS(){
+  return new Promise((resolve, reject)=>{
+    if(window.XLSX){ resolve(window.XLSX); return; }
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    sc.onload = ()=> resolve(window.XLSX);
+    sc.onerror = ()=> reject(new Error('Excel 解析组件加载失败（需联网）'));
+    document.head.appendChild(sc);
+  });
+}
+
+function parseCsv(text){
+  text = text.replace(/^\uFEFF/, '');
+  const rows = []; let row = [], cell = '', q = false;
+  const delim = (text.indexOf('\t') > -1 && text.indexOf(',') < 0) ? '\t' : ',';
+  for(let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if(q){
+      if(ch === '"'){ if(text[i+1] === '"'){ cell += '"'; i++; } else q = false; }
+      else cell += ch;
+    } else {
+      if(ch === '"') q = true;
+      else if(ch === delim){ row.push(cell); cell = ''; }
+      else if(ch === '\n'){ row.push(cell); rows.push(row); row = []; cell = ''; }
+      else if(ch !== '\r') cell += ch;
+    }
+  }
+  if(cell !== '' || row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(c => String(c).trim() !== ''));
+}
+
+function budHandleImportFile(file){
+  const reader = new FileReader();
+  reader.onerror = ()=> showToast('导入失败：文件读取错误');
+  if(/\.(csv|txt)$/i.test(file.name)){
+    reader.onload = e => budImportApply(parseCsv(String(e.target.result)));
+    reader.readAsText(file, 'utf-8');
+  } else {
+    reader.onload = e => {
+      loadSheetJS().then(XLSX => {
+        try {
+          const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          budImportApply(XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false }));
+        } catch(err){ showToast('导入失败：无法解析 Excel 文件'); }
+      }).catch(err => showToast('导入失败：' + err.message));
+    };
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+function budImportApply(rows){
+  budgetCollectInputs();          // 先暂存页面已填写内容，导入结果叠加其上
+  const y = budState.year;
+  const items = budIndicatorRows(budState.unit);
+  const norm = s => String(s == null ? '' : s).replace(/\s/g, '');
+  /* 定位表头行：含「指标名称」的行；再定位名称列与预算值列（优先「{年份}...预算值」） */
+  let headI = -1, nameI = -1, valI = -1;
+  for(let i = 0; i < Math.min(rows.length, 20); i++){
+    const r = rows[i].map(norm);
+    const ni = r.findIndex(c => c.indexOf('指标名称') > -1);
+    if(ni < 0) continue;
+    let vi = r.findIndex(c => c.indexOf(String(y)) > -1 && c.indexOf('预算值') > -1);
+    if(vi < 0) vi = r.findIndex(c => c.indexOf('预算值') > -1 && c.indexOf('去年') < 0 && c.indexOf('同比') < 0);
+    if(vi < 0) continue;
+    headI = i; nameI = ni; valI = vi; break;
+  }
+  if(headI < 0){
+    showToast('导入失败：未找到含「指标名称」与「' + y + '年预算值」的表头（请核对模板）');
+    return;
+  }
+  const byName = {};
+  items.forEach(it => { byName[norm(it.rawName)] = it; byName[norm(it.name)] = it; });
+  let filled = 0, unknown = 0;
+  for(let i = headI + 1; i < rows.length; i++){
+    const r = rows[i]; if(!r) continue;
+    const nm = norm(r[nameI]); if(!nm) continue;
+    const it = byName[nm]; if(!it){ unknown++; continue; }
+    const v = String(r[valI] == null ? '' : r[valI]).trim();
+    if(v === '') continue;
+    budState.vals[y + '|' + budState.unit + '|' + it.rawName] = v;
+    filled++;
+  }
+  if(!filled){
+    showToast('导入完成：文件中的指标名称与「' + (BUDGET_UNITS.find(x=>x.key===budState.unit)||{}).label + '」指标清单未匹配到任何行');
+    return;
+  }
+  budState.editing = true;        // 导入后进入编辑态便于核对补填
+  budState.showErr = false;
+  renderBudgetPanel();
+  showToast('导入成功：已按「指标名称」匹配填充 ' + filled + ' 项 ' + y + ' 年预算值' + (unknown ? '（' + unknown + ' 行名称不在本单元清单，已跳过）' : ''));
+}
+
+function showToast(msg){
+  let t = document.getElementById('toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.className = 'toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function escHtml(str){
+  return String(str==null?'':str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+
+/* ===== 输入过滤（抽取自 index.html 原监听） ===== */
+document.addEventListener('input', e=>{
+  const inp = e.target;
+  if(!inp.classList || !inp.classList.contains('bud-input')) return;
+  let v = inp.value.replace(/[^\d.]/g, '');           // 剔除非数值字符
+  const dot = v.indexOf('.');
+  if(dot >= 0) v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '');  // 仅保留一个小数点
+  if(v !== inp.value) inp.value = v;
+  if(inp.classList.contains('bud-err') && inp.value !== ''){
+    inp.classList.remove('bud-err');
+    const tip = inp.parentNode && inp.parentNode.querySelector('.bud-err-tip');
+    if(tip) tip.remove();
+  }
+});
+
+/* ===== 侧栏菜单：仅「预算值填报管理 → 预算值填报」一项 ===== */
+function renderTabs(){
+  const wrap = document.getElementById('tabsWrap');
+  wrap.innerHTML = '';
+  const budget = document.createElement('div');
+  budget.className = 'nav-branch';
+  const budHead = document.createElement('button');
+  budHead.className = 'nav-parent open nav-fixed nav-budget';
+  budHead.innerHTML = '<span>预算值填报管理</span>';
+  const budKids = document.createElement('div');
+  budKids.className = 'nav-children open';
+  const budBtn = document.createElement('button');
+  budBtn.className = 'nav-item active';
+  budBtn.dataset.sheet = BUDGET_KEY;
+  budBtn.dataset.action = 'nav-sheet';
+  budBtn.textContent = '预算值填报';
+  budKids.appendChild(budBtn);
+  budget.appendChild(budHead);
+  budget.appendChild(budKids);
+  wrap.appendChild(budget);
+}
+
+/* ===== 点击分发：预算页全部动作（编辑/提交/导入/导出/菜单激活） ===== */
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-action]');
+  if(!btn) return;
+  const action = btn.dataset.action;
+  if(action === 'nav-sheet'){
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active', b === btn));
+    const panel = document.getElementById('panel-' + BUDGET_KEY);
+    if(panel) panel.classList.add('active');
+  }
+  else if(action === 'bud-edit'){ budgetToggleEdit(); }
+  else if(action === 'bud-submit'){ budgetSubmit(); }
+  else if(action === 'bud-import'){ budgetCollectInputs(); document.getElementById('budImportFile').click(); }
+  else if(action === 'export' && btn.dataset.key === BUDGET_KEY){
+    alert('正在导出 预算指标填报表...\n（演示功能，实际环境对接导出接口）');
+  }
+});
+
+/* ===== 下拉/文件监听：预算年度、业务单元切换 + 导入文件选择 ===== */
+document.addEventListener('change', (e)=>{
+  const t = e.target;
+  if(t.id === 'budImportFile'){
+    const f = t.files && t.files[0];
+    t.value = '';
+    if(f) budHandleImportFile(f);
+    return;
+  }
+  if(t.id === 'budYearSel' || t.id === 'budUnitSel'){
+    budgetCollectInputs();
+    budState.year = +document.getElementById('budYearSel').value;
+    budState.unit = document.getElementById('budUnitSel').value;
+    budState.editing = false;
+    budState.showErr = false;
+    renderBudgetPanel();
+    return;
+  }
+});
+
+/* ===== 初始化：菜单 + 预算面板（默认即显示、激活） ===== */
+renderTabs();
+renderBudgetPanel();
+(function(){
+  const panel = document.getElementById('panel-' + BUDGET_KEY);
+  if(panel) panel.classList.add('active');
+})();
+</script>
+</body>
+</html>
