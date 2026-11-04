@@ -292,7 +292,7 @@ td.code{ font-family:Consolas,"Courier New",monospace; color:#b0791a; }
 #viewV2 .data-table td.value{font-family:"Courier New",monospace; font-weight:600;}
 #viewV2 .bud-table th.bud-hei{color:#fff; font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;}
 #viewV2 .bud-table th.bud-req{color:#fff; font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;}
-#viewV2 .bud-req-star{color:#ffd54d; font-weight:700;}
+#viewV2 .bud-req-star{color:#ff4d4f; font-weight:700;}
 #viewV2 .bud-table td.bud-must{background:#fffbef; font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;}
 #viewV2 .bud-table td.bud-must.ro{background:#fafbfc; font-family:inherit;}
 #viewV2 .bud-must .bud-input-wrap{display:flex; flex-direction:column; align-items:stretch;}
@@ -312,6 +312,15 @@ td.code{ font-family:Consolas,"Courier New",monospace; color:#b0791a; }
 #viewV2 .bud-note p + p{margin-top:4px;}
 #viewV2 .bud-note b{color:var(--c-text);}
 #viewV2 .bud-note-star{color:#c0392b; font-weight:700;}
+/* V2 按钮层级（2026-11-03 优化：对齐 V1 新增弹框的 btn-primary/btn-ghost 层级，提升在 #viewV2 覆盖样式后的对比度） */
+#viewV2 .panel-actions .btn.btn-primary{background:var(--c-primary); color:#fff; border-color:var(--c-primary);}
+#viewV2 .panel-actions .btn.btn-primary:hover:not(:disabled){background:#e6971a; color:#fff; border-color:#e6971a;}
+#viewV2 .panel-actions .btn.btn-ghost{color:var(--c-accent); border-color:#ecc98a; background:#fff;}
+#viewV2 .panel-actions .btn.btn-ghost:hover:not(:disabled){background:#fff8e6; color:var(--c-accent); border-color:var(--c-primary);}
+/* 填报状态徽标：草稿（会话内暂存未提交）/ 已提交 */
+#viewV2 .bud-status-tag{display:inline-block; margin-left:10px; padding:2px 10px; border-radius:999px; font-size:11.5px; font-weight:600; vertical-align:2px;}
+#viewV2 .bud-status-tag.draft{background:#fff4e0; color:#b06f12; border:1px solid #f0d9a8;}
+#viewV2 .bud-status-tag.submitted{background:#e9f9f1; color:#067a46; border:1px solid #b5e6cd;}
 </style>
 </head>
 <body>
@@ -395,6 +404,39 @@ td.code{ font-family:Consolas,"Courier New",monospace; color:#b0791a; }
 <!-- 子菜单视图：V2（并入自 预算填报V2版本.html；无侧栏菜单，仅预算填报面板） -->
 <div class="page" id="viewV2" style="display:none">
   <div class="bud-inner"><div id="budRoot"></div></div>
+</div>
+
+<!-- 弹框：V2 导入模板（下载模板 → 上传校验，样式复用 V1 新增弹框；2026-11-03） -->
+<div class="overlay" id="bud2ImportOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">导入预算模板 · <span id="bud2ImportScope"></span></div>
+      <button type="button" class="modal-close" data-close="bud2ImportOverlay">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="m-form">
+        <div class="f-item">
+          <label class="f-label"><b>*</b>步骤一：下载模板</label>
+          <div><button type="button" class="btn btn-ghost" id="bud2BtnTpl" style="height:32px;padding:0 14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>下载本页模板</button></div>
+        </div>
+        <div class="f-item">
+          <label class="f-label"><b>*</b>步骤二：上传填写好的模板</label>
+          <div class="dropzone dz-sm" id="bud2Dropzone">
+            <div class="dz-main"><b class="up-tt">＋ 上传模板</b><span class="iu-tip">　点击选择文件，或将文件拖入此处（.xlsx / .xls / .csv）</span></div>
+            <div class="dz-file" id="bud2DzFile"></div>
+            <input type="file" id="bud2FileInput" accept=".xlsx,.xls,.csv" style="display:none">
+          </div>
+        </div>
+      </div>
+      <div class="up-result" id="bud2UpResult">
+        <div class="up-banner" id="bud2UpBanner"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn" data-close="bud2ImportOverlay">取 消</button>
+      <button type="button" class="btn btn-primary" id="bud2BtnImportOk">导入并校验</button>
+    </div>
+  </div>
 </div>
 
 <!-- 弹框：新增预算填报（年份 + 业务单元 + 内联上传模板） -->
@@ -930,7 +972,7 @@ const BUDGET_UNITS = [
   {key:'ins',   label:'华润保险', codePrefix:'STR_CRI', src:()=> (typeof INSURANCE_SHEETS!=='undefined'?INSURANCE_SHEETS:null)},
   {key:'lease', label:'华润租赁', codePrefix:'STR_CRL', src:()=> (typeof LEASE_SHEETS!=='undefined'?LEASE_SHEETS:null)}
 ];
-const budState = { year: 2027, unit: 'bank', vals: {}, editing: false, showErr: false }; // vals: 'year|unit|指标名称' → 填报值（会话内暂存草稿）；editing: 是否可填写；showErr: 提交校验未过红框提示
+const budState = { year: 2027, unit: 'bank', vals: {}, editing: false, showErr: false, snap: null, submitted: null }; // vals: 'year|unit|指标名称' → 填报值（会话内暂存草稿）；editing: 是否可填写；showErr: 提交校验未过红框提示；snap: 进入编辑时快照（取消回滚用）；submitted: 最近一次提交成功的 'year|unit'（状态徽标）
 
 const BUDGET_KEY = 'bud-fill';
 
@@ -1068,18 +1110,38 @@ function renderBudgetPanel(){
   const uOpts = BUDGET_UNITS.map(u => `<option value="${u.key}"${u.key===budState.unit?' selected':''}>${u.label}</option>`).join('');
 
   const editing = !!budState.editing;
+  /* 填报状态徽标：草稿=编辑中/暂存过未提交；已提交=通过提交校验 */
+  const dkAny = y + '|' + budState.unit + '|';
+  const hasDraft = rows.some(it => budState.vals[dkAny + it.rawName] !== undefined && budState.vals[dkAny + it.rawName] !== '');
+  const stTag = budState.submitted === y + '|' + budState.unit
+    ? '<span class="bud-status-tag submitted">✓ 已提交</span>'
+    : (editing || hasDraft ? '<span class="bud-status-tag draft">● 草稿</span>' : '');
+
+  /* 线性图标（feather 风格 stroke SVG）：stroke=currentColor 自动跟随按钮文字色，与 V1 图标按钮风格统一 */
+  const ico = p => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
+  const IC = {
+    edit:   ico('<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>'),
+    submit: ico('<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>'),
+    up:     ico('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/>'),
+    down:   ico('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>'),
+    save:   ico('<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/>'),
+    undo:   ico('<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>'),
+    file:   ico('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>')
+  };
 
   let html = `
     <div class="panel-header">
-      <div class="panel-title">预算指标填报表 · ${unitLabel}</div>
+      <div class="panel-title">预算指标填报表 · ${unitLabel}${stTag}</div>
       <div class="panel-actions">
-        ${editing
-          ? `<button class="btn" data-action="bud-edit" type="button">🖊 编辑中 · 完成</button>`
-          : `<button class="btn" data-action="bud-edit" type="button">🖊 编辑</button>`}
-        <button class="btn" data-action="bud-submit" type="button">✅ 提交</button>
-        <button class="btn" data-action="bud-import" type="button" title="从 Excel/CSV 模板导入：按「指标名称」列匹配填充本年预算值">📤 导入</button>
-        <input type="file" id="budImportFile" accept=".xlsx,.xls,.csv" style="display:none">
-        <button class="btn" data-action="export" data-key="${BUDGET_KEY}" type="button">📥 导出</button>
+        ${editing ? `
+          <button class="btn" data-action="bud-cancel" type="button" title="放弃本次未保存修改">${IC.undo}取消</button>
+          <button class="btn btn-ghost" data-action="bud-draft" type="button" title="暂存当前填写内容，稍后可继续编辑">${IC.save}暂存</button>
+        ` : `
+          <button class="btn" data-action="bud-edit" type="button">${IC.edit}编辑</button>
+        `}
+        <button class="btn btn-primary" data-action="bud-submit" type="button" title="校验必填项后提交本年预算值">${IC.submit}提交</button>
+        <button class="btn btn-ghost" data-action="bud-import-open" type="button" title="先下载模板填写后上传，导入前自动校验表头与指标">${IC.up}导入</button>
+        <button class="btn" data-action="bud-export" type="button" title="导出当前业务单元与年度的填报表（含已填草稿）">${IC.down}导出</button>
       </div>
     </div>
     <div class="bud-toolbar">
@@ -1091,13 +1153,13 @@ function renderBudgetPanel(){
     </div>
     <div class="table-card"><div class="table-wrap">
     <table class="data-table bud-table"><thead><tr>
-        <th>业务单元</th><th>指标标准编号</th><th>指标名称</th><th>指标单位</th>
+        <th>指标标准编号</th><th>指标名称</th><th>指标单位</th>
         <th>${lastY} 年预算值</th><th>最新实际值</th><th class="bud-req bud-hei">最新实际值日期</th>
         <th class="bud-req"><span class="bud-req-star">*</span>${y} 年预算值</th>
       </tr></thead>`;
 
   if(!rows.length){
-    html += `<tbody><tr><td colspan="8"><div class="bud-empty-tip">未查询到匹配的数据，请先在指标标准库中去维护"是否有全年预算"值</div></td></tr>`;
+    html += `<tbody><tr><td colspan="7"><div class="bud-empty-tip">未查询到匹配的数据，请先在指标标准库中去维护"是否有全年预算"值</div></td></tr>`;
   } else {
     html += `<tbody>`;
     rows.forEach(it=>{
@@ -1108,7 +1170,6 @@ function renderBudgetPanel(){
       const lastBud = '<span class="dim-dash">--</span>';
       const latest = (it.latest && it.latest !== '-') ? it.latest : '<span class="dim-dash">--</span>';
       html += `<tr>
-        <td>${unitLabel}</td>
         <td><span class="bud-auto">${it.code}</span></td>
         <td class="indicator-name lv0" title="${escHtml(it.rawName)}">${escHtml(it.name)}</td>
         <td class="value">${escHtml(it.unit)}</td>
@@ -1139,14 +1200,32 @@ function budgetCollectInputs(){
   });
 }
 
-function budgetToggleEdit(){
+/* ---------- 编辑态管理（2026-11-03 优化）：编辑 → 可填写；暂存 → 保留已填内容退出编辑；保存 → 校验后存为草稿 ---------- */
+function budgetEnterEdit(){
   budgetCollectInputs();
-  budState.editing = !budState.editing;
+  budState.snap = Object.assign({}, budState.vals);   // 进编辑前快照，取消时回滚
+  budState.editing = true;
+  budState.showErr = false;
   renderBudgetPanel();
-  if(budState.editing){
-    const f = document.querySelector('#panel-' + BUDGET_KEY + ' input.bud-input');
-    if(f) f.focus();
-  }
+  const f = document.querySelector('#panel-' + BUDGET_KEY + ' input.bud-input');
+  if(f) f.focus();
+}
+function budgetCancelEdit(){
+  if(budState.snap) budState.vals = budState.snap;    // 丢弃未保存的修改
+  budState.snap = null;
+  budState.editing = false;
+  budState.showErr = false;
+  renderBudgetPanel();
+  showToast('已取消本次编辑（未保存的修改已还原）');
+}
+function budgetDraftSave(){
+  budgetCollectInputs();
+  budState.snap = null;
+  budState.editing = false;
+  budState.showErr = false;
+  budState.submitted = null;
+  renderBudgetPanel();
+  showToast('已暂存草稿，点击「编辑」可继续填写');
 }
 
 function budgetSubmit(){
@@ -1156,14 +1235,17 @@ function budgetSubmit(){
   if(missing.length){
     budState.showErr = true;
     budState.editing = true;   // 校验未过 → 进入编辑态，红框可直接补填
+    if(!budState.snap) budState.snap = Object.assign({}, budState.vals);
     renderBudgetPanel();
     showToast(`提交失败：还有 ${missing.length} 项「*${budState.year} 年预算值」未填报（必填）`);
     return;
   }
   budState.showErr = false;
   budState.editing = false;
+  budState.snap = null;
+  budState.submitted = budState.year + '|' + budState.unit;   // 状态徽标切换为「已提交」
   renderBudgetPanel();
-  showToast('提交成功');
+  showToast('提交成功：' + rows.length + ' 项 ' + budState.year + ' 年预算值已上报');
 }
 
 function loadSheetJS(){
@@ -1197,66 +1279,180 @@ function parseCsv(text){
   return rows.filter(r => r.some(c => String(c).trim() !== ''));
 }
 
-function budHandleImportFile(file){
-  const reader = new FileReader();
-  reader.onerror = ()=> showToast('导入失败：文件读取错误');
+/* ---------- V2 导入（2026-11-03 优化）：弹框式「下载模板 → 上传校验 → 填充」 ----------
+   模板表头与当前页面列表完全一致（8 列），并预填页面全部数据行，用户仅需填写最后一列；
+   校验：① 表头与当前所选年度/业务单元的模板一致；② 指标编号+指标名称组合存在于当前页面，
+   不存在则整体不导入，并提供「下载错误附件」（原模板 + 最后一列错误说明）。 */
+/* 模板/导出表头：与页面列表完全一致（2026-11-03 调整：删除「业务单元」列——导入上下文已由页面工具条选定） */
+function budTplHeaders(){
+  const y = budState.year;
+  return ['指标标准编号','指标名称','指标单位', (y-1) + ' 年预算值','最新实际值','最新实际值日期', '*' + y + ' 年预算值'];
+}
+function budTplAoa(){
+  const y = budState.year;
+  const latestDate = budLatestDate();
+  const rows = budIndicatorRows(budState.unit);
+  const aoa = [ budTplHeaders() ];
+  rows.forEach(it=>{
+    const v = budState.vals[y + '|' + budState.unit + '|' + it.rawName] || '';
+    aoa.push([ it.code, it.rawName, it.unit, '', it.latest || '', latestDate, v ]);
+  });
+  return aoa;
+}
+function budNormalizeHead(s){ return String(s==null?'':s).replace(/[*＊\s]/g,''); }
+function budDownloadTpl(){
+  budExportFile('预算指标填报模板_')
+    .then(()=> showToast('模板已下载：请仅填写最后一列「*' + budState.year + ' 年预算值」'))
+    .catch(err => showToast('模板下载失败：' + err.message));
+}
+/* 导出当前填报表：与下载模板同构（表头+数据行，含已填草稿值），文件名区分前缀 */
+function budExportFile(prefix){
+  return loadSheetJS().then(XLSX => {
+    const aoa = budTplAoa();
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{wch:20},{wch:30},{wch:8},{wch:14},{wch:12},{wch:14},{wch:14}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '预算填报');
+    const unitLabel = (BUDGET_UNITS.find(x=>x.key===budState.unit)||{}).label || '';
+    XLSX.writeFile(wb, prefix + unitLabel + '_' + budState.year + '年.xlsx');
+  });
+}
+function budExport(){
+  budgetCollectInputs();   // 先收拢页面已填内容，导出结果与所见一致
+  budExportFile('预算指标填报表_')
+    .then(()=> showToast('已导出「' + (BUDGET_UNITS.find(x=>x.key===budState.unit)||{}).label + ' ' + budState.year + ' 年」预算指标填报表'))
+    .catch(err => showToast('导出失败：' + err.message));
+}
+
+let bud2File = null;      // 弹框内已选文件 {name, aoa}
+let bud2ErrAoa = null;    // 最近一次校验失败的错误附件数据（含最后一列错误说明）
+
+function bud2Banner(cls, html){
+  const b = document.getElementById('bud2UpBanner');
+  b.className = 'up-banner ' + cls;
+  b.innerHTML = html;
+  document.getElementById('bud2UpResult').classList.add('show');
+}
+function bud2Reset(){
+  bud2File = null; bud2ErrAoa = null;
+  document.getElementById('bud2UpResult').classList.remove('show');
+  const fe = document.getElementById('bud2DzFile'); fe.style.display='none'; fe.innerHTML='';
+}
+function bud2OpenImport(){
+  budgetCollectInputs();
+  bud2Reset();
+  const unitLabel = (BUDGET_UNITS.find(x=>x.key===budState.unit) || BUDGET_UNITS[0]).label;
+  document.getElementById('bud2ImportScope').textContent = unitLabel + ' · ' + budState.year + ' 年';
+  document.getElementById('bud2ImportOverlay').classList.add('show');
+}
+function bud2HandleFile(file){
+  bud2ErrAoa = null;
+  document.getElementById('bud2UpResult').classList.remove('show');
+  const fe = document.getElementById('bud2DzFile');
+  const done = (name, aoa) => {
+    fe.style.display='block';
+    fe.innerHTML = '已选择：<span class="fname">' + escHtml(name) + '</span>　<span class="iu-tip">点击「导入并校验」执行校验</span>';
+    bud2File = { name, aoa };
+  };
   if(/\.(csv|txt)$/i.test(file.name)){
-    reader.onload = e => budImportApply(parseCsv(String(e.target.result)));
+    const reader = new FileReader();
+    reader.onerror = ()=> showToast('文件读取错误');
+    reader.onload = e => done(file.name, parseCsv(String(e.target.result)));
     reader.readAsText(file, 'utf-8');
   } else {
+    const reader = new FileReader();
+    reader.onerror = ()=> showToast('文件读取错误');
     reader.onload = e => {
       loadSheetJS().then(XLSX => {
         try {
           const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
           const ws = wb.Sheets[wb.SheetNames[0]];
-          budImportApply(XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false }));
-        } catch(err){ showToast('导入失败：无法解析 Excel 文件'); }
-      }).catch(err => showToast('导入失败：' + err.message));
+          done(file.name, XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false }));
+        } catch(err){ bud2File = null; showToast('无法解析 Excel 文件'); }
+      }).catch(err => showToast('Excel 解析组件加载失败（需联网）'));
     };
     reader.readAsArrayBuffer(file);
   }
 }
-
-function budImportApply(rows){
-  budgetCollectInputs();          // 先暂存页面已填写内容，导入结果叠加其上
+function bud2DownloadErr(){
+  if(!bud2ErrAoa) return;
+  loadSheetJS().then(XLSX => {
+    const ws = XLSX.utils.aoa_to_sheet(bud2ErrAoa);
+    /* 说明：多个错误以 \n 连接，Excel 中该行需「自动换行」即逐条分行展示（模板列已设较宽） */
+    ws['!cols'] = [{wch:20},{wch:30},{wch:8},{wch:14},{wch:12},{wch:14},{wch:14},{wch:46}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '预算填报');
+    XLSX.writeFile(wb, '预算指标填报模板-错误说明_' + budState.year + '年.xlsx');
+    showToast('错误附件已下载：按最后一列「错误说明」修正后可直接重新上传');
+  }).catch(err => showToast('错误附件下载失败：' + err.message));
+}
+function bud2DoImport(){
+  if(!bud2File){ showToast('请先上传填写好的模板文件'); return; }
+  const aoa = bud2File.aoa;
+  const unitLabel = (BUDGET_UNITS.find(x=>x.key===budState.unit) || BUDGET_UNITS[0]).label;
   const y = budState.year;
-  const items = budIndicatorRows(budState.unit);
-  const norm = s => String(s == null ? '' : s).replace(/\s/g, '');
-  /* 定位表头行：含「指标名称」的行；再定位名称列与预算值列（优先「{年份}...预算值」） */
-  let headI = -1, nameI = -1, valI = -1;
-  for(let i = 0; i < Math.min(rows.length, 20); i++){
-    const r = rows[i].map(norm);
-    const ni = r.findIndex(c => c.indexOf('指标名称') > -1);
-    if(ni < 0) continue;
-    let vi = r.findIndex(c => c.indexOf(String(y)) > -1 && c.indexOf('预算值') > -1);
-    if(vi < 0) vi = r.findIndex(c => c.indexOf('预算值') > -1 && c.indexOf('去年') < 0 && c.indexOf('同比') < 0);
-    if(vi < 0) continue;
-    headI = i; nameI = ni; valI = vi; break;
+  const tplHead = budTplHeaders().map(budNormalizeHead);
+  /* 定位表头行（含「指标名称」的行） */
+  let headI = -1;
+  for(let i=0;i<Math.min(aoa.length,10);i++){
+    if((aoa[i]||[]).map(budNormalizeHead).some(c=>c==='指标名称')){ headI=i; break; }
   }
+  /* 表头异常统一提示（2026-11-03）：定位不到表头行（非本页模板的文件多为结构完全不同的指标清单）
+     与表头列不一致使用同一标准文案 */
+  const headErrHtml = '<span style="font-size:18px">✕</span><span><b>导入失败</b>　导入模板表头与当前「' + unitLabel + ' · ' + y + ' 年」页面表头不一致，应依次为「' + budTplHeaders().join('」「') + '」。请下载最新模板填写后重新上传</span>';
   if(headI < 0){
-    showToast('导入失败：未找到含「指标名称」与「' + y + '年预算值」的表头（请核对模板）');
+    bud2Banner('err', headErrHtml);
     return;
   }
-  const byName = {};
-  items.forEach(it => { byName[norm(it.rawName)] = it; byName[norm(it.name)] = it; });
-  let filled = 0, unknown = 0;
-  for(let i = headI + 1; i < rows.length; i++){
-    const r = rows[i]; if(!r) continue;
-    const nm = norm(r[nameI]); if(!nm) continue;
-    const it = byName[nm]; if(!it){ unknown++; continue; }
-    const v = String(r[valI] == null ? '' : r[valI]).trim();
-    if(v === '') continue;
-    budState.vals[y + '|' + budState.unit + '|' + it.rawName] = v;
-    filled++;
-  }
-  if(!filled){
-    showToast('导入完成：文件中的指标名称与「' + (BUDGET_UNITS.find(x=>x.key===budState.unit)||{}).label + '」指标清单未匹配到任何行');
+  /* 校验①：表头与当前年度页面模板严格一致——列数不同或任一列不同均拒绝；
+     末尾多余空列与错误回执列「错误说明」不计（支持按错误附件修正后直接重传） */
+  const fileHead = (aoa[headI]||[]).map(budNormalizeHead);
+  while(fileHead.length && (fileHead[fileHead.length-1]==='' || fileHead[fileHead.length-1]==='错误说明')) fileHead.pop();
+  const headBad = fileHead.length !== tplHead.length || tplHead.some((h,i)=>fileHead[i]!==h);
+  if(headBad){
+    bud2Banner('err', headErrHtml);
     return;
   }
-  budState.editing = true;        // 导入后进入编辑态便于核对补填
+  /* 校验②：指标标准编号 + 指标名称 一组须存在于当前页面（去业务单元列后：编号列0/名称列1/值列6） */
+  const byPair = {};
+  budIndicatorRows(budState.unit).forEach(it=>{ byPair[it.code + '||' + budNormalizeHead(it.rawName)] = it; });
+  const norm = s => String(s==null?'':s).replace(/\s/g,'');
+  const results = []; let errCount = 0;
+  for(let i=headI+1;i<aoa.length;i++){
+    const r = aoa[i]||[];
+    const code = norm(r[0]), name = String(r[1]==null?'':r[1]).trim(), val = norm(r[6]);
+    if(!code && !name && !val) continue;                          // 空行
+    const pairKey = code + '||' + budNormalizeHead(name);
+    const it = byPair[pairKey];
+    const errs = [];
+    if(!it) errs.push('指标编号与名称组合（' + (code||'—') + ' / ' + (name||'—') + '）在当前页面不存在');
+    if(val !== '' && (val==='-' || isNaN(Number(val.replace(/,/g,''))))) errs.push('预算值须为数值，当前填写「' + val + '」');
+    if(it && errs.length===0 && val==='') errs.push('*' + y + ' 年预算值为必填');
+    if(errs.length) errCount++;
+    results.push({ r, it, val, errs });
+  }
+  if(!results.length){
+    bud2Banner('err','<span style="font-size:18px">✕</span><span><b>导入失败</b>　未解析到有效数据行，请填写「*' + y + ' 年预算值」后重新上传</span>');
+    return;
+  }
+  if(errCount){
+    /* 任一行不通过 → 整体不导入；错误附件 = 原模板 + 最后一列错误说明（多个错误换行显示） */
+    bud2ErrAoa = [ budTplHeaders().concat(['错误说明']) ];
+    results.forEach(x => bud2ErrAoa.push(x.r.concat([x.errs.join('\n')])));
+    bud2Banner('err','<span style="font-size:18px">✕</span><span><b>导入失败</b>　' + errCount + ' 行未通过校验，请点「<a class="banner-dl">下载错误附件</a>」，按最后一列说明修正后重新上传</span>');
+    return;
+  }
+  /* 全部通过 → 填充草稿并进入编辑态核对 */
+  let filled = 0;
+  results.forEach(x=>{
+    if(x.val !== ''){ budState.vals[y + '|' + budState.unit + '|' + x.it.rawName] = x.val; filled++; }
+  });
+  document.getElementById('bud2ImportOverlay').classList.remove('show');
+  budState.editing = true;
   budState.showErr = false;
+  budState.submitted = null;
   renderBudgetPanel();
-  showToast('导入成功：已按「指标名称」匹配填充 ' + filled + ' 项 ' + y + ' 年预算值' + (unknown ? '（' + unknown + ' 行名称不在本单元清单，已跳过）' : ''));
+  showToast('导入成功：已填充 ' + filled + ' 项 ' + y + ' 年预算值（草稿），请核对后「提交」');
 }
 
 function showToast(msg){ toast(msg, /失败/.test(msg) ? 'err' : 'ok'); }
@@ -1292,23 +1488,39 @@ document.getElementById('budRoot').addEventListener('click', (e)=>{
     const panel = document.getElementById('panel-' + BUDGET_KEY);
     if(panel) panel.classList.add('active');
   }
-  else if(action === 'bud-edit'){ budgetToggleEdit(); }
+  else if(action === 'bud-edit'){ budgetEnterEdit(); }
+  else if(action === 'bud-draft'){ budgetDraftSave(); }
+  else if(action === 'bud-cancel'){ budgetCancelEdit(); }
   else if(action === 'bud-submit'){ budgetSubmit(); }
-  else if(action === 'bud-import'){ budgetCollectInputs(); document.getElementById('budImportFile').click(); }
-  else if(action === 'export' && btn.dataset.key === BUDGET_KEY){
-    alert('正在导出 预算指标填报表...\n（演示功能，实际环境对接导出接口）');
-  }
+  else if(action === 'bud-import-open'){ bud2OpenImport(); }
+  else if(action === 'bud-export'){ budExport(); }
 });
 
-/* ===== 下拉/文件监听：预算年度、业务单元切换 + 导入文件选择 ===== */
+/* ===== 导入弹框（#viewV2 外层，document 级监听）：下载模板 / 上传 / 拖拽 / 确定 / 错误附件 ===== */
+document.getElementById('bud2BtnTpl').addEventListener('click', budDownloadTpl);
+document.getElementById('bud2BtnImportOk').addEventListener('click', bud2DoImport);
+document.getElementById('bud2Dropzone').addEventListener('click', ()=> document.getElementById('bud2FileInput').click());
+document.getElementById('bud2Dropzone').addEventListener('dragover', e=>{ e.preventDefault(); document.getElementById('bud2Dropzone').classList.add('drag'); });
+document.getElementById('bud2Dropzone').addEventListener('dragleave', ()=> document.getElementById('bud2Dropzone').classList.remove('drag'));
+document.getElementById('bud2Dropzone').addEventListener('drop', e=>{
+  e.preventDefault(); document.getElementById('bud2Dropzone').classList.remove('drag');
+  if(e.dataTransfer.files && e.dataTransfer.files.length) bud2HandleFile(e.dataTransfer.files[0]);
+});
+document.getElementById('bud2FileInput').addEventListener('change', function(){
+  if(this.files.length) bud2HandleFile(this.files[0]);
+  this.value = '';
+});
+document.getElementById('bud2UpBanner').addEventListener('click', e=>{
+  if(e.target.closest('.banner-dl')) bud2DownloadErr();
+});
+/* 点遮罩空白处关闭弹框（与 V1 弹框交互一致，可选） */
+document.getElementById('bud2ImportOverlay').addEventListener('click', function(e){
+  if(e.target === this) this.classList.remove('show');
+});
+
+/* ===== 下拉监听：预算年度、业务单元切换 ===== */
 document.getElementById('budRoot').addEventListener('change', (e)=>{
   const t = e.target;
-  if(t.id === 'budImportFile'){
-    const f = t.files && t.files[0];
-    t.value = '';
-    if(f) budHandleImportFile(f);
-    return;
-  }
   if(t.id === 'budYearSel' || t.id === 'budUnitSel'){
     budgetCollectInputs();
     budState.year = +document.getElementById('budYearSel').value;
