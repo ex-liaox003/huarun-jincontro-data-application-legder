@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>预算填报 - 通用报送管理系统</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 :root{
@@ -285,18 +285,26 @@ td.code{ font-family:Consolas,"Courier New",monospace; color:#b0791a; }
 #viewV2 .data-table thead{position:sticky; top:0; z-index:5; background:linear-gradient(135deg,var(--c-primary),var(--c-primary-light)); color:#fff;}
 #viewV2 .data-table th{padding:8px 10px; text-align:center; font-weight:600; font-size:12.5px; white-space:nowrap; border:1px solid rgba(255,255,255,0.25);}
 #viewV2 .data-table td{padding:7px 10px; text-align:center; border:1px solid var(--c-border); white-space:nowrap;}
-#viewV2 .data-table tbody tr:nth-child(even){background:#f8f9fb;}
+/* 列表取消隔行变色（2026-11-05）：全部统一白底展示 */
 #viewV2 .data-table tbody tr:hover{background:#fff8e6;}
 #viewV2 .data-table td.indicator-name{font-weight:500; color:var(--c-text); text-align:left; padding-left:12px;}
 #viewV2 .data-table td.indicator-name.lv0{font-weight:600;}
 #viewV2 .data-table td.value{font-family:"Courier New",monospace; font-weight:600;}
+/* 数值列右对齐（2026-11-04）：X-1年预算值 / 最新实际值 / X年预算值（输入框有值时） */
+#viewV2 .data-table td.bud-num{text-align:right;}
+/* 编号列左对齐（与指标名称一致，2026-11-04） */
+#viewV2 .data-table td.bud-code{text-align:left; padding-left:12px;}
 #viewV2 .bud-table th.bud-hei{color:#fff; font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;}
 #viewV2 .bud-table th.bud-req{color:#fff; font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;}
 #viewV2 .bud-req-star{color:#ff4d4f; font-weight:700;}
-#viewV2 .bud-table td.bud-must{background:#fffbef; font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif;}
-#viewV2 .bud-table td.bud-must.ro{background:#fafbfc; font-family:inherit;}
+#viewV2 .bud-table td.bud-must{background:#fffbef; font-family:'SimHei','Heiti SC','Microsoft YaHei',sans-serif; width:300px; min-width:300px;}
+/* 最后一列（X年预算值）表头同步加宽，保证列宽生效 */
+#viewV2 .bud-table th.bud-val-col{width:300px; min-width:300px;}
+/* X-1年预算值 / 最新实际值 两列适当加宽（2026-11-05） */
+#viewV2 .bud-table th.bud-amt-col{width:150px; min-width:150px;}
+#viewV2 .bud-table td.bud-must.ro{background:#fff; font-family:inherit;}
 #viewV2 .bud-must .bud-input-wrap{display:flex; flex-direction:column; align-items:stretch;}
-#viewV2 .bud-input{width:130px; border:1.5px solid var(--c-border); border-radius:6px; padding:5px 8px; font-size:13px; font-family:inherit; text-align:right; color:var(--c-text); transition:border-color .15s, box-shadow .15s;}
+#viewV2 .bud-input{width:280px; border:1.5px solid var(--c-border); border-radius:6px; padding:5px 8px; font-size:13px; font-family:inherit; text-align:right; color:var(--c-text); transition:border-color .15s, box-shadow .15s;}
 #viewV2 .bud-input:hover{border-color:var(--c-primary);}
 #viewV2 .bud-input:focus{outline:none; border-color:var(--c-primary); box-shadow:0 0 0 3px rgba(245,166,35,.15);}
 #viewV2 .bud-input.filled{border-color:var(--c-success); background:#f4fbf7;}
@@ -340,8 +348,8 @@ td.code{ font-family:Consolas,"Courier New",monospace; color:#b0791a; }
     <div class="nav-item nav-drop active" id="budgetDrop" onclick="BudgetVer.toggleDrop(event)">预算填报<span class="nav-chev">▼</span>
       <div class="nav-sub">
         <span class="nav-sub-cap">版本切换</span>
-        <button type="button" class="nav-sub-item active" data-ver="v1" onclick="BudgetVer.switchTo('v1',this)">预算填报V1版本</button>
-        <button type="button" class="nav-sub-item" data-ver="v2" onclick="BudgetVer.switchTo('v2',this)">预算填报V2版本</button>
+        <button type="button" class="nav-sub-item active" data-ver="v2" onclick="BudgetVer.switchTo('v2',this)">预算填报V2版本</button>
+        <button type="button" class="nav-sub-item" data-ver="v1" onclick="BudgetVer.switchTo('v1',this)">预算填报V1版本</button>
       </div>
     </div>
     <a class="nav-item" href="指标管理.html">指标管理</a>
@@ -363,7 +371,7 @@ td.code{ font-family:Consolas,"Courier New",monospace; color:#b0791a; }
 </div>
 
 <!-- 子菜单视图：V1 = 当前预算填报页面 -->
-<div class="page" id="viewV1">
+<div class="page" id="viewV1" style="display:none">
 
   <!-- 工具条：新增 ｜ 下载模板 -->
   <div class="toolbar">
@@ -402,7 +410,7 @@ td.code{ font-family:Consolas,"Courier New",monospace; color:#b0791a; }
 
 <!-- 子菜单视图：V2（待开发，暂不显示内容） -->
 <!-- 子菜单视图：V2（并入自 预算填报V2版本.html；无侧栏菜单，仅预算填报面板） -->
-<div class="page" id="viewV2" style="display:none">
+<div class="page" id="viewV2">
   <div class="bud-inner"><div id="budRoot"></div></div>
 </div>
 
@@ -514,7 +522,7 @@ td.code{ font-family:Consolas,"Courier New",monospace; color:#b0791a; }
    V1 = 当前预算填报页面（记录列表 + 新增 + 上传 + 预览 + 删除）
    V2 = 预算值填报页（并入自 预算填报V2版本.html，2026-10-30） */
 var BudgetVer = {
-  current: 'v1',
+  current: 'v2',
   toggleDrop: function(e){
     e.stopPropagation();
     document.getElementById('budgetDrop').classList.toggle('open');
@@ -1053,6 +1061,14 @@ function budLatestDate(){
   return last.getFullYear() + '-' + p(last.getMonth() + 1) + '-' + p(last.getDate());
 }
 
+/* 数值展示格式化（2026-11-04）：千分位 + 保留 2 位小数（328.5 → 328.50；6800 → 6,800.00）；
+   非数值内容原样返回，空值由调用方处理占位 */
+function budFmtNum(v){
+  const s = String(v == null ? '' : v).replace(/,/g, '').trim();
+  if(s === '' || isNaN(Number(s))) return String(v == null ? '' : v).trim();
+  return Number(s).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function budIndicatorRows(unit){
   const u = BUDGET_UNITS.find(x => x.key === unit);
   const col = u ? u.src() : null;
@@ -1154,8 +1170,8 @@ function renderBudgetPanel(){
     <div class="table-card"><div class="table-wrap">
     <table class="data-table bud-table"><thead><tr>
         <th>指标标准编号</th><th>指标名称</th><th>指标单位</th>
-        <th>${lastY} 年预算值</th><th>最新实际值</th><th class="bud-req bud-hei">最新实际值日期</th>
-        <th class="bud-req"><span class="bud-req-star">*</span>${y} 年预算值</th>
+        <th class="bud-amt-col">${lastY}年预算值</th><th class="bud-amt-col">最新实际值</th><th class="bud-req bud-hei">最新实际值日期</th>
+        <th class="bud-req bud-val-col"><span class="bud-req-star">*</span>${y}年预算值</th>
       </tr></thead>`;
 
   if(!rows.length){
@@ -1168,15 +1184,17 @@ function renderBudgetPanel(){
       const err = !!budState.showErr && v === '';
       /* 上一年预算值：指标标准库无历史预算数据，统一以 -- 占位展示 */
       const lastBud = '<span class="dim-dash">--</span>';
-      const latest = (it.latest && it.latest !== '-') ? it.latest : '<span class="dim-dash">--</span>';
+      const latest = (it.latest && it.latest !== '-') ? budFmtNum(it.latest) : '<span class="dim-dash">--</span>';
+      /* 编辑态占位提示：百分比类指标（单位 %）单独提示填写 ×100 的数值（如目标 1.2% 填 1.2）；其余保持通用文案 */
+      const ph = editing ? (String(it.unit).trim()==='%' ? '填写×100 的数值(如：目标 1.2%，填 1.2)' : '必填，全年预算值') : '';
       html += `<tr>
-        <td><span class="bud-auto">${it.code}</span></td>
+        <td class="bud-code"><span class="bud-auto">${it.code}</span></td>
         <td class="indicator-name lv0" title="${escHtml(it.rawName)}">${escHtml(it.name)}</td>
         <td class="value">${escHtml(it.unit)}</td>
-        <td class="value">${lastBud}</td>
-        <td class="value">${latest}</td>
+        <td class="value bud-num">${lastBud}</td>
+        <td class="value bud-num">${latest}</td>
         <td class="value">${latestDate}</td>
-        <td class="bud-must${editing?'':' ro'}"><div class="bud-input-wrap"><input class="bud-input${v ? ' filled' : ''}${editing?'':' ro'}${err?' bud-err':''}" data-budkey="${escHtml(dk)}" value="${escHtml(v)}" placeholder="${editing?'必填，全年预算值':''}" inputmode="decimal" ${editing?'':'readonly tabindex="-1"'} aria-label="${escHtml(it.name)} ${y} 年预算值">${err?'<div class="bud-err-tip">请输入预算值</div>':''}</div></td>
+        <td class="bud-must bud-num${editing?'':' ro'}"><div class="bud-input-wrap"><input class="bud-input${v ? ' filled' : ''}${editing?'':' ro'}${err?' bud-err':''}" data-budkey="${escHtml(dk)}" value="${escHtml(editing ? v : budFmtNum(v))}" placeholder="${ph}" inputmode="decimal" ${editing?'':'readonly tabindex="-1"'} aria-label="${escHtml(it.name)} ${y} 年预算值">${err?'<div class="bud-err-tip">请输入预算值</div>':''}</div></td>
       </tr>`;
     });
   }
@@ -1237,7 +1255,7 @@ function budgetSubmit(){
     budState.editing = true;   // 校验未过 → 进入编辑态，红框可直接补填
     if(!budState.snap) budState.snap = Object.assign({}, budState.vals);
     renderBudgetPanel();
-    showToast(`提交失败：还有 ${missing.length} 项「*${budState.year} 年预算值」未填报（必填）`);
+    showToast(`提交失败：还有 ${missing.length} 项「*${budState.year}年预算值」未填报（必填）`);
     return;
   }
   budState.showErr = false;
@@ -1245,14 +1263,14 @@ function budgetSubmit(){
   budState.snap = null;
   budState.submitted = budState.year + '|' + budState.unit;   // 状态徽标切换为「已提交」
   renderBudgetPanel();
-  showToast('提交成功：' + rows.length + ' 项 ' + budState.year + ' 年预算值已上报');
+  showToast('提交成功：' + rows.length + ' 项 ' + budState.year + '年预算值已上报');
 }
 
 function loadSheetJS(){
   return new Promise((resolve, reject)=>{
     if(window.XLSX){ resolve(window.XLSX); return; }
     const sc = document.createElement('script');
-    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    sc.src = 'https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js';
     sc.onload = ()=> resolve(window.XLSX);
     sc.onerror = ()=> reject(new Error('Excel 解析组件加载失败（需联网）'));
     document.head.appendChild(sc);
@@ -1286,7 +1304,7 @@ function parseCsv(text){
 /* 模板/导出表头：与页面列表完全一致（2026-11-03 调整：删除「业务单元」列——导入上下文已由页面工具条选定） */
 function budTplHeaders(){
   const y = budState.year;
-  return ['指标标准编号','指标名称','指标单位', (y-1) + ' 年预算值','最新实际值','最新实际值日期', '*' + y + ' 年预算值'];
+  return ['指标标准编号','指标名称','指标单位', (y-1) + '年预算值','最新实际值','最新实际值日期', '*' + y + '年预算值'];
 }
 function budTplAoa(){
   const y = budState.year;
@@ -1300,9 +1318,114 @@ function budTplAoa(){
   return aoa;
 }
 function budNormalizeHead(s){ return String(s==null?'':s).replace(/[*＊\s]/g,''); }
+/* ===== xlsx 样式（2026-11-05）：模板/导出与页面视觉一致（橙色表头、边框、斑马纹、填报列淡黄底、数值右对齐） =====
+   依赖 xlsx-js-style（API 兼容 SheetJS，支持单元格 .s 样式）；若组件不支持样式则自动降级为无样式输出 */
+function budStyleSheet(ws, opt){
+  if(!ws || !Object.keys(ws).some(k=>k[0]!=='!')) return ws;
+  const cols = opt.cols || 7;               // 数据列数
+  const errCol = !!opt.errCol;              // 是否含末列「错误说明」
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  const border = { top:{style:'thin',color:{rgb:'D5DBE3'}}, bottom:{style:'thin',color:{rgb:'D5DBE3'}}, left:{style:'thin',color:{rgb:'D5DBE3'}}, right:{style:'thin',color:{rgb:'D5DBE3'}} };
+  const headFill = { fgColor:{rgb:'F5A623'} };              // 页面表头橙
+  const errFill  = { fgColor:{rgb:'FEF2F2'} };              // 错误说明淡红底
+  const VALC = cols - 1;                                    // 填报列索引（恒为第 7 列；错误说明列在其后）
+  for(let r = range.s.r; r <= range.e.r; r++){
+    for(let c = 0; c <= cols - 1 + (errCol?1:0); c++){
+      const addr = XLSX.utils.encode_cell({r, c});
+      let cell = ws[addr];
+      if(!cell){
+        if(r === 0) continue;                          // 表头必为已有单元格
+        cell = ws[addr] = { t:'s', v:'' };             // 数据区空单元格补建：保证边框成块
+      }
+      const st = cell.s = cell.s || {};
+      st.border = border;
+      st.alignment = { vertical:'center', horizontal: (c===0||c===1) ? 'left' : ([3,4,VALC].indexOf(c)>=0 ? 'right' : 'center') };
+      if(r === 0){
+        st.font = { bold:true, color:{rgb:'FFFFFF'}, sz:11, name:'微软雅黑' };
+        st.fill = headFill;
+        st.alignment = { vertical:'center', horizontal:'center' };
+      } else {
+        st.font = { sz:10.5, name:'微软雅黑', color:{rgb: (c===0) ? 'C8962E' : '1F2937'}, bold:(c===1) };
+        /* 数据区（含最后一列 *X年预算值）统一白底（2026-11-05），无背景色 */
+      }
+      if(errCol && c === cols && r === 0){ st.fill = { fgColor:{rgb:'D64550'} }; }         // 错误说明表头深红
+      if(errCol && c === cols && r > 0){ st.fill = errFill; st.font = { sz:10.5, name:'微软雅黑', color:{rgb:'B91C1C'} }; st.alignment = { vertical:'top', horizontal:'left', wrapText:true }; }
+      if(errCol && c === cols && !ws[addr]) ws[addr] = { t:'s', v:'', s:{ border, fill:(r===0?{fgColor:{rgb:'D64550'}}:errFill) } };
+    }
+  }
+  ws['!rows'] = [{hpt:26}].concat(new Array(Math.max(0, range.e.r)).fill({hpt:22}));
+  return ws;
+}
+/* ---------- xlsx 表头富文本：最后一列表头「*X年预算值」的星号红色（2026-11-05） ----------
+   xlsx-js-style 的单元格只支持整体一种字体色；组件写出的 zip 为 STORED（未压缩）存储，
+   故在内存中重写 sheet XML：把首行以 * 开头的表头单元格改为 inlineStr 两段 run——
+   「*」红色 FF4D4F（与页面 .bud-req-star 一致）＋其余文字白色（橙底表头）。失败自动降级为原文本 */
+const BUD_CRC_T=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c;}return t;})();
+function budCrc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=BUD_CRC_T[(c^u8[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function budRichStarHeader(bytes){
+  const td=new TextDecoder('utf-8'), te=new TextEncoder();
+  const dv=new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const entries=[]; let off=0;
+  while(off+4<=bytes.length && dv.getUint32(off,true)===0x04034b50){
+    const flags=dv.getUint16(off+6,true), method=dv.getUint16(off+8,true), csize=dv.getUint32(off+18,true);
+    const nlen=dv.getUint16(off+26,true), elen=dv.getUint16(off+28,true);
+    if(flags & 8) throw new Error('zip 使用流式数据描述，跳过富文本补丁');   // 防御：非本组件写出方式
+    const name=td.decode(bytes.subarray(off+30,off+30+nlen));
+    const data=bytes.subarray(off+30+nlen+elen, off+30+nlen+elen+csize);
+    entries.push({name, data});
+    off += 30+nlen+elen+csize;
+  }
+  let patched=false;
+  entries.forEach(e=>{
+    if(!/^xl\/worksheets\/.+\.xml$/.test(e.name)) return;
+    let xml=td.decode(e.data);
+    xml=xml.replace(/<c r="([A-Z]+1)"([^>]*?)t="str"><v>\*([^<]*)<\/v><\/c>/, (m0, ref, attrs, text)=>{
+      patched=true;
+      const sAttr=(attrs.match(/s="\d+"/)||[''])[0];
+      const rRed='<rPr><sz val="11"/><b/><color rgb="FFFF4D4F"/><rFont val="微软雅黑"/></rPr>';
+      const rWht='<rPr><sz val="11"/><b/><color rgb="FFFFFFFF"/><rFont val="微软雅黑"/></rPr>';
+      return '<c r="'+ref+'" '+(sAttr?sAttr+' ':'')+'t="inlineStr"><is><r>'+rRed+'<t>*</t></r><r>'+rWht+'<t>'+text+'</t></r></is></c>';
+    });
+    e.data=te.encode(xml);
+  });
+  if(!patched) return bytes;
+  /* 重建 STORED zip：逐 entry 重算 CRC/大小，中央目录偏移整体平移 */
+  const chunks=[], cdRows=[]; let pos=0;
+  const u16=(a,v)=>{a.push(v&255,(v>>>8)&255);}, u32=(a,v)=>{a.push(v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255);};
+  entries.forEach(e=>{
+    const nb=te.encode(e.name), crc=budCrc32(e.data);
+    const h=[]; u32(h,0x04034b50); u16(h,20); u16(h,0); u16(h,0); u16(h,0); u16(h,33);
+    u32(h,crc); u32(h,e.data.length); u32(h,e.data.length); u16(h,nb.length); u16(h,0);
+    chunks.push(new Uint8Array(h),nb,e.data);
+    cdRows.push({nb,crc,size:e.data.length,off:pos});
+    pos+=30+nb.length+e.data.length;
+  });
+  const cdStart=pos, cdChunks=[];
+  cdRows.forEach(c=>{
+    const h=[]; u32(h,0x02014b50); u16(h,20); u16(h,20); u16(h,0); u16(h,0); u16(h,0); u16(h,33);
+    u32(h,c.crc); u32(h,c.size); u32(h,c.size); u16(h,c.nb.length); u16(h,0); u16(h,0);
+    u16(h,0); u16(h,0); u32(h,0); u32(h,c.off);
+    cdChunks.push(new Uint8Array(h),c.nb);
+  });
+  let cdSize=0; cdChunks.forEach(x=>cdSize+=x.length);
+  const eo=[]; u32(eo,0x06054b50); u16(eo,0); u16(eo,0); u16(eo,entries.length); u16(eo,entries.length);
+  u32(eo,cdSize); u32(eo,cdStart); u16(eo,0);
+  chunks.push(...cdChunks,new Uint8Array(eo));
+  let total=0; chunks.forEach(x=>total+=x.length);
+  const out=new Uint8Array(total); let w=0; chunks.forEach(x=>{out.set(x,w);w+=x.length;});
+  return out;
+}
+function budSaveXlsx(XLSX, wb, filename){
+  let bytes=new Uint8Array(XLSX.write(wb,{bookType:'xlsx',type:'array'}));
+  try{ bytes=budRichStarHeader(bytes); }catch(e){ /* 补丁失败降级为普通输出 */ }
+  const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},800);
+}
 function budDownloadTpl(){
   budExportFile('预算指标填报模板_')
-    .then(()=> showToast('模板已下载：请仅填写最后一列「*' + budState.year + ' 年预算值」'))
+    .then(()=> showToast('模板已下载：请仅填写最后一列「*' + budState.year + '年预算值」'))
     .catch(err => showToast('模板下载失败：' + err.message));
 }
 /* 导出当前填报表：与下载模板同构（表头+数据行，含已填草稿值），文件名区分前缀 */
@@ -1310,11 +1433,12 @@ function budExportFile(prefix){
   return loadSheetJS().then(XLSX => {
     const aoa = budTplAoa();
     const ws = XLSX.utils.aoa_to_sheet(aoa);
-    ws['!cols'] = [{wch:20},{wch:30},{wch:8},{wch:14},{wch:12},{wch:14},{wch:14}];
+    ws['!cols'] = [{wch:20},{wch:30},{wch:8},{wch:14},{wch:12},{wch:14},{wch:16}];
+    try{ budStyleSheet(ws, {cols:7}); }catch(e){ /* 样式失败降级为纯数据 */ }
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, '预算填报');
     const unitLabel = (BUDGET_UNITS.find(x=>x.key===budState.unit)||{}).label || '';
-    XLSX.writeFile(wb, prefix + unitLabel + '_' + budState.year + '年.xlsx');
+    budSaveXlsx(XLSX, wb, prefix + unitLabel + '_' + budState.year + '年.xlsx');
   });
 }
 function budExport(){
@@ -1379,10 +1503,11 @@ function bud2DownloadErr(){
   loadSheetJS().then(XLSX => {
     const ws = XLSX.utils.aoa_to_sheet(bud2ErrAoa);
     /* 说明：多个错误以 \n 连接，Excel 中该行需「自动换行」即逐条分行展示（模板列已设较宽） */
-    ws['!cols'] = [{wch:20},{wch:30},{wch:8},{wch:14},{wch:12},{wch:14},{wch:14},{wch:46}];
+    ws['!cols'] = [{wch:20},{wch:30},{wch:8},{wch:14},{wch:12},{wch:14},{wch:16},{wch:46}];
+    try{ budStyleSheet(ws, {cols:7, errCol:true}); }catch(e){ /* 样式失败降级 */ }
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, '预算填报');
-    XLSX.writeFile(wb, '预算指标填报模板-错误说明_' + budState.year + '年.xlsx');
+    budSaveXlsx(XLSX, wb, '预算指标填报模板-错误说明_' + budState.year + '年.xlsx');
     showToast('错误附件已下载：按最后一列「错误说明」修正后可直接重新上传');
   }).catch(err => showToast('错误附件下载失败：' + err.message));
 }
@@ -1427,12 +1552,12 @@ function bud2DoImport(){
     const errs = [];
     if(!it) errs.push('指标编号与名称组合（' + (code||'—') + ' / ' + (name||'—') + '）在当前页面不存在');
     if(val !== '' && (val==='-' || isNaN(Number(val.replace(/,/g,''))))) errs.push('预算值须为数值，当前填写「' + val + '」');
-    if(it && errs.length===0 && val==='') errs.push('*' + y + ' 年预算值为必填');
+    if(it && errs.length===0 && val==='') errs.push('*' + y + '年预算值为必填');
     if(errs.length) errCount++;
     results.push({ r, it, val, errs });
   }
   if(!results.length){
-    bud2Banner('err','<span style="font-size:18px">✕</span><span><b>导入失败</b>　未解析到有效数据行，请填写「*' + y + ' 年预算值」后重新上传</span>');
+    bud2Banner('err','<span style="font-size:18px">✕</span><span><b>导入失败</b>　未解析到有效数据行，请填写「*' + y + '年预算值」后重新上传</span>');
     return;
   }
   if(errCount){
@@ -1452,7 +1577,7 @@ function bud2DoImport(){
   budState.showErr = false;
   budState.submitted = null;
   renderBudgetPanel();
-  showToast('导入成功：已填充 ' + filled + ' 项 ' + y + ' 年预算值（草稿），请核对后「提交」');
+  showToast('导入成功：已填充 ' + filled + ' 项 ' + y + '年预算值（草稿），请核对后「提交」');
 }
 
 function showToast(msg){ toast(msg, /失败/.test(msg) ? 'err' : 'ok'); }
