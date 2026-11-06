@@ -326,9 +326,6 @@ td.code{ font-family:Consolas,"Courier New",monospace; color:#b0791a; }
 #viewV2 .panel-actions .btn.btn-ghost{color:var(--c-accent); border-color:#ecc98a; background:#fff;}
 #viewV2 .panel-actions .btn.btn-ghost:hover:not(:disabled){background:#fff8e6; color:var(--c-accent); border-color:var(--c-primary);}
 /* 填报状态徽标：草稿（会话内暂存未提交）/ 已提交 */
-#viewV2 .bud-status-tag{display:inline-block; margin-left:10px; padding:2px 10px; border-radius:999px; font-size:11.5px; font-weight:600; vertical-align:2px;}
-#viewV2 .bud-status-tag.draft{background:#fff4e0; color:#b06f12; border:1px solid #f0d9a8;}
-#viewV2 .bud-status-tag.submitted{background:#e9f9f1; color:#067a46; border:1px solid #b5e6cd;}
 </style>
 </head>
 <body>
@@ -980,7 +977,7 @@ const BUDGET_UNITS = [
   {key:'ins',   label:'华润保险', codePrefix:'STR_CRI', src:()=> (typeof INSURANCE_SHEETS!=='undefined'?INSURANCE_SHEETS:null)},
   {key:'lease', label:'华润租赁', codePrefix:'STR_CRL', src:()=> (typeof LEASE_SHEETS!=='undefined'?LEASE_SHEETS:null)}
 ];
-const budState = { year: 2027, unit: 'bank', vals: {}, editing: false, showErr: false, snap: null, submitted: null }; // vals: 'year|unit|指标名称' → 填报值（会话内暂存草稿）；editing: 是否可填写；showErr: 提交校验未过红框提示；snap: 进入编辑时快照（取消回滚用）；submitted: 最近一次提交成功的 'year|unit'（状态徽标）
+const budState = { year: 2027, unit: 'bank', theme: '战略', vals: {}, editing: false, showErr: false, snap: null }; // vals: 'year|unit|指标名称' → 填报值（会话内暂存草稿）；editing: 是否可填写；showErr: 提交校验未过红框提示；snap: 进入编辑时快照（取消回滚用）；theme: 指标主题（当前仅作查询条件展示，不参与列表过滤）
 
 const BUDGET_KEY = 'bud-fill';
 
@@ -1126,12 +1123,6 @@ function renderBudgetPanel(){
   const uOpts = BUDGET_UNITS.map(u => `<option value="${u.key}"${u.key===budState.unit?' selected':''}>${u.label}</option>`).join('');
 
   const editing = !!budState.editing;
-  /* 填报状态徽标：草稿=编辑中/暂存过未提交；已提交=通过提交校验 */
-  const dkAny = y + '|' + budState.unit + '|';
-  const hasDraft = rows.some(it => budState.vals[dkAny + it.rawName] !== undefined && budState.vals[dkAny + it.rawName] !== '');
-  const stTag = budState.submitted === y + '|' + budState.unit
-    ? '<span class="bud-status-tag submitted">✓ 已提交</span>'
-    : (editing || hasDraft ? '<span class="bud-status-tag draft">● 草稿</span>' : '');
 
   /* 线性图标（feather 风格 stroke SVG）：stroke=currentColor 自动跟随按钮文字色，与 V1 图标按钮风格统一 */
   const ico = p => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
@@ -1147,7 +1138,7 @@ function renderBudgetPanel(){
 
   let html = `
     <div class="panel-header">
-      <div class="panel-title">预算指标填报表 · ${unitLabel}${stTag}</div>
+      <div class="panel-title">指标预算值填报表 · ${unitLabel}</div>
       <div class="panel-actions">
         ${editing ? `
           <button class="btn" data-action="bud-cancel" type="button" title="放弃本次未保存修改">${IC.undo}取消</button>
@@ -1161,9 +1152,11 @@ function renderBudgetPanel(){
       </div>
     </div>
     <div class="bud-toolbar">
-      <div class="bud-field"><span class="bud-field-label">业务单元选择</span>
+      <div class="bud-field"><span class="bud-field-label">业务单元</span>
         <select class="bud-select" id="budUnitSel"${editing?' disabled':''}>${uOpts}</select></div>
-      <div class="bud-field"><span class="bud-field-label">预算年度选择</span>
+      <div class="bud-field"><span class="bud-field-label">指标主题</span>
+        <select class="bud-select" id="budThemeSel"${editing?' disabled':''}><option value="战略"${budState.theme==='战略'?' selected':''}>战略</option><option value="风险"${budState.theme==='风险'?' selected':''}>风险</option></select></div>
+      <div class="bud-field"><span class="bud-field-label">预算年度</span>
         <select class="bud-select" id="budYearSel"${editing?' disabled':''}>${yOpts}</select></div>
       <div class="bud-mode${editing?' edit':''}">${editing?'✏️ 编辑中（可填写全年预算值）':'👁 仅查看 · 点击「编辑」后可填写'}</div>
     </div>
@@ -1241,7 +1234,6 @@ function budgetDraftSave(){
   budState.snap = null;
   budState.editing = false;
   budState.showErr = false;
-  budState.submitted = null;
   renderBudgetPanel();
   showToast('已暂存草稿，点击「编辑」可继续填写');
 }
@@ -1261,7 +1253,6 @@ function budgetSubmit(){
   budState.showErr = false;
   budState.editing = false;
   budState.snap = null;
-  budState.submitted = budState.year + '|' + budState.unit;   // 状态徽标切换为「已提交」
   renderBudgetPanel();
   showToast('提交成功：' + rows.length + ' 项 ' + budState.year + '年预算值已上报');
 }
@@ -1443,8 +1434,8 @@ function budExportFile(prefix){
 }
 function budExport(){
   budgetCollectInputs();   // 先收拢页面已填内容，导出结果与所见一致
-  budExportFile('预算指标填报表_')
-    .then(()=> showToast('已导出「' + (BUDGET_UNITS.find(x=>x.key===budState.unit)||{}).label + ' ' + budState.year + ' 年」预算指标填报表'))
+  budExportFile('指标预算值填报表_')
+    .then(()=> showToast('已导出「' + (BUDGET_UNITS.find(x=>x.key===budState.unit)||{}).label + ' ' + budState.year + ' 年」指标预算值填报表'))
     .catch(err => showToast('导出失败：' + err.message));
 }
 
@@ -1557,7 +1548,7 @@ function bud2DoImport(){
     results.push({ r, it, val, errs });
   }
   if(!results.length){
-    bud2Banner('err','<span style="font-size:18px">✕</span><span><b>导入失败</b>　未解析到有效数据行，请填写「*' + y + '年预算值」后重新上传</span>');
+    bud2Banner('err','<span style="font-size:18px">✕</span><span><b>导入失败</b>　未解析到有效数据行，请重新下载模板后再上传</span>');
     return;
   }
   if(errCount){
@@ -1575,7 +1566,6 @@ function bud2DoImport(){
   document.getElementById('bud2ImportOverlay').classList.remove('show');
   budState.editing = true;
   budState.showErr = false;
-  budState.submitted = null;
   renderBudgetPanel();
   showToast('导入成功：已填充 ' + filled + ' 项 ' + y + '年预算值（草稿），请核对后「提交」');
 }
@@ -1646,6 +1636,7 @@ document.getElementById('bud2ImportOverlay').addEventListener('click', function(
 /* ===== 下拉监听：预算年度、业务单元切换 ===== */
 document.getElementById('budRoot').addEventListener('change', (e)=>{
   const t = e.target;
+  if(t.id === 'budThemeSel'){ budState.theme = t.value; return; }
   if(t.id === 'budYearSel' || t.id === 'budUnitSel'){
     budgetCollectInputs();
     budState.year = +document.getElementById('budYearSel').value;
