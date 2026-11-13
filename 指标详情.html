@@ -746,6 +746,16 @@ function show(idx, row) {
   return v == null ? '--' : v;
 }
 
+// 是否考核指标/是否高质量指标（2026-11-12 需求，替代原「指标属性标签」展示字段）：
+// 由数据源「指标属性标签」列派生 —— 仅考核指标/两者都是 → 考核=是；仅高质量指标/两者都是 → 高质量=是；其余/空 → --
+function assessFlagPair(row) {
+  const v = String(val(C.assessTag, row) || '').trim();
+  return {
+    assess: (v === '仅考核指标' || v === '两者都是') ? '是' : '--',
+    quality: (v === '仅高质量指标' || v === '两者都是') ? '是' : '--'
+  };
+}
+
 // Status styling
 function statusInfo(s) {
   if (!s) return { text: '--', cls: 'status-off' };
@@ -797,6 +807,7 @@ function render() {
   ).join('');
 
   // === 业务属性 (与新增页面保持一致) ===
+  const assessFlags = assessFlagPair();   // 是否考核指标/是否高质量指标（由「指标属性标签」列派生，2026-11-12 需求）
   renderSection('body-biz', [
     { label: '指标标准编号', value: show(C.code) },
     { label: '指标分组编号', value: show(C.groupCode) },
@@ -818,7 +829,9 @@ function render() {
     { label: '指标责任人', value: show(C.srcBizContact) },
     { label: '指标来源业务单元系统名称', value: show(C.srcSys) },
     { label: '指标来源业务单元系统报表', value: show(C.srcReport) },
-    { label: '指标属性标签', value: show(C.assessTag), tag: true },
+    // 2026-11-12 需求：移除「指标属性标签」展示字段，改为「是否考核指标」「是否高质量指标」两个字段
+    { label: '是否考核指标', value: assessFlags.assess, tag: assessFlags.assess !== '--' },
+    { label: '是否高质量指标', value: assessFlags.quality, tag: assessFlags.quality !== '--' },
     { label: '是否监管指标', value: show(C.isRegulator), tag: true },
     { label: '报送监管机构', value: show(C.regulatorOrg) },
     { label: '指标计算公式', value: show(C.formula), fullWidth: true },

@@ -225,7 +225,7 @@ input.std-ctrl::placeholder{color:#b6bcc6;}
   text-align:center; font-weight:600;
 }
 @media (max-width:720px){ .adv-panel .std-form{grid-template-columns:1fr;} }
-/* ===== 指标属性标签：多选下拉（考核指标/高质量指标 2 枚举复选） ===== */
+/* ===== 通用多选下拉样式（是否考核指标/是否高质量指标/更新频次/时间维度/指标口径/业务单元供数部门） ===== */
 .std-multiselect{position:relative; flex:1; min-width:0;}
 .std-ms-btn{width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:pointer; text-align:left;}
 .std-ms-btn:disabled{background:#f5f6f8; color:#a6adb8; cursor:not-allowed;}
@@ -1347,12 +1347,20 @@ button.gq-sel:hover{box-shadow:0 2px 10px rgba(20,90,180,0.28);}
                     <div class="std-ms-pop" id="stdMsPop-timeDim"></div>
                   </div>
                 </div>
-                <div class="std-form-item"><label class="std-form-label" for="stdMsBtn-assess">指标属性标签：</label>
-                  <div class="std-multiselect" id="stdMs-assess">
-                    <button type="button" class="std-ctrl std-ms-btn" data-action="std-ms-toggle" data-ms="assess" id="stdMsBtn-assess" title="支持多选">
-                      <span class="std-ms-sel placeholder" id="stdMsSel-assess">请选择</span><span class="std-tree-chev">▾</span>
+                <div class="std-form-item"><label class="std-form-label" for="stdMsBtn-assessFlag">是否考核指标：</label>
+                  <div class="std-multiselect" id="stdMs-assessFlag">
+                    <button type="button" class="std-ctrl std-ms-btn" data-action="std-ms-toggle" data-ms="assessFlag" id="stdMsBtn-assessFlag" title="支持多选；枚举为年度（示例：2027/2026/2025）">
+                      <span class="std-ms-sel placeholder" id="stdMsSel-assessFlag">请选择</span><span class="std-tree-chev">▾</span>
                     </button>
-                    <div class="std-ms-pop" id="stdMsPop-assess"></div>
+                    <div class="std-ms-pop" id="stdMsPop-assessFlag"></div>
+                  </div>
+                </div>
+                <div class="std-form-item"><label class="std-form-label" for="stdMsBtn-qualityFlag">是否高质量指标：</label>
+                  <div class="std-multiselect" id="stdMs-qualityFlag">
+                    <button type="button" class="std-ctrl std-ms-btn" data-action="std-ms-toggle" data-ms="qualityFlag" id="stdMsBtn-qualityFlag" title="支持多选；枚举为年度（示例：2027/2026/2025）">
+                      <span class="std-ms-sel placeholder" id="stdMsSel-qualityFlag">请选择</span><span class="std-tree-chev">▾</span>
+                    </button>
+                    <div class="std-ms-pop" id="stdMsPop-qualityFlag"></div>
                   </div>
                 </div>
                 <div class="std-form-item"><label class="std-form-label" for="stdMsBtn-fullYearBudget">是否有全年预算：</label>
@@ -1413,7 +1421,7 @@ function escHtml(str){
    数据源：indicator_standard_data.js（INDICATOR_STANDARD）
    ============================================================ */
 const STD_DATA = (typeof INDICATOR_STANDARD !== 'undefined') ? INDICATOR_STANDARD : null;
-const stdState = { kw:'', advName:'', advDef:'', bizUnit:'', caliber:[], freq:[], timeDim:[], assess:[], supplyDept:[], fullYearBudget:[], page:1, pageSize:10 };
+const stdState = { kw:'', advName:'', advDef:'', bizUnit:'', caliber:[], freq:[], timeDim:[], assessFlag:[], qualityFlag:[], supplyDept:[], fullYearBudget:[], page:1, pageSize:10 };
 /* 查询模式：点「搜索」才生效 —— stdState 为条件草稿，stdApplied 为最近一次搜索应用的条件快照；
    列表/统计仅按快照过滤，输入与勾选过程中结果保持不变 */
 let stdApplied = null;
@@ -1422,7 +1430,8 @@ function stdSnapshot(){
     kw: stdState.kw, advName: stdState.advName, advDef: stdState.advDef,
     bizUnit: stdState.bizUnit,
     caliber: stdState.caliber.slice(), freq: stdState.freq.slice(),
-    timeDim: stdState.timeDim.slice(), assess: stdState.assess.slice(),
+    timeDim: stdState.timeDim.slice(), assessFlag: stdState.assessFlag.slice(),
+    qualityFlag: stdState.qualityFlag.slice(),
     supplyDept: stdState.supplyDept.slice(), fullYearBudget: stdState.fullYearBudget.slice(),
     leaves: new Set(stdLeafChecked)
   };
@@ -1566,8 +1575,8 @@ function stdResetTree(){
   stdTreeApplySel();
 }
 
-/* ===== 通用多选下拉（更新频次/时间维度/指标口径/指标属性标签/业务单元供数部门/是否有全年预算） ===== */
-const STD_MS_KEYS = ['caliber','freq','timeDim','assess','supplyDept','fullYearBudget'];
+/* ===== 通用多选下拉（更新频次/时间维度/指标口径/是否考核指标/是否高质量指标/业务单元供数部门/是否有全年预算） ===== */
+const STD_MS_KEYS = ['caliber','freq','timeDim','assessFlag','qualityFlag','supplyDept','fullYearBudget'];
 function stdMsOptions(key){
   if(key==='caliber'){
     /* 联动：仅返回所选业务单元关联的口径；未选单元时无可选项 */
@@ -1584,6 +1593,9 @@ function stdMsOptions(key){
     });
     return list;
   }
+  /* 是否考核指标/是否高质量指标/是否有全年预算（2026-11-12 需求）：枚举统一为年度
+     （当前年度+1 / 当前年度 / 当前年度-1，示例：2027/2026/2025） */
+  if(key==='assessFlag' || key==='qualityFlag' || key==='fullYearBudget') return STD_YEAR_OPTIONS;
   return STD_ENUM[key] || [];
 }
 const stdMsSearch = {};   /* 多选下拉弹层模糊搜索关键字草稿：key → kw（2026-10-28 供数部门需求） */
@@ -1740,17 +1752,61 @@ const STD_ENUM = {
   bizUnit: ['华润金融','华润银行','华润信托','华润资产','华润资本','华润融资租赁','华润保险经纪','华润深国投投资'],
   freq: ['日度','月度','季度','半年度','年度'],
   timeDim: ['本日发生数','本日末','本月发生数','本月末','本季累计数','本季末','本年累计数','本年末'],
-  status: ['未发布','已发布','已下线'],
-  assess: ['考核','高质量'],
-  fullYearBudget: ['是','否']
+  status: ['未发布','已发布','已下线']
 };
 
-/* 指标属性标签：查询枚举 → 数据源原始枚举匹配集合（选「考核」命中 仅考核指标/两者都是，高质量同理；
-   2026-10-14 显示词由「考核指标/高质量指标」简称为「考核/高质量」） */
-const STD_ASSESS_MAP = {
-  '考核': ['仅考核指标','两者都是'],
-  '高质量': ['仅高质量指标','两者都是']
-};
+/* 是否考核指标/是否高质量指标/是否有全年预算（2026-11-12 需求）：下拉多选，枚举统一为年度 ——
+   当前年度+1 / 当前年度 / 当前年度-1（示例：2027、2026、2025） */
+const STD_YEAR_OPTIONS = (()=>{
+  const y = new Date().getFullYear();
+  return [y+1, y, y-1].map(String);
+})();
+
+/* 「是否考核指标」「是否高质量指标」「是否有全年预算」按单独年度维护（2026-11-12 需求）：
+   底层存储：每个年度独立一条标记（it.yearFlags = { assessFlag:{2025:'是',2026:'是',…}, qualityFlag:{…}, fullYearBudget:{…} }），
+   展示/筛选时按年度合并，方便筛选与按年度判断标记。
+   当前数据源暂无分年度字段，暂由旧布尔标记（assess 标签 / fullYearBudget 是否）兼容派生演示数据：
+   命中=是时按指标序号轮换取不同年度组合，让列表可看到全部展示规则
+   （连续≥3年缩写 / 空缺分段 / 单年直写 / 两年逗号隔开）；接入真实分年度数据后仅需替换本函数取值来源 */
+function stdItemYearFlags(it){
+  if(it.yearFlags) return it.yearFlags;
+  if(it.__yearFlags) return it.__yearFlags;
+  /* 演示用年度组合轮换（按序号循环，保证同一指标每次刷新结果一致）：
+     0:[2025,2026,2027]→2025~2027  1:[2025]→2025
+     2:[2025,2026]→2025，2026      3:[2025,2026,2027,2029]→2025~2027，2029 */
+  const DEMO_SETS = [
+    [2025,2026,2027],
+    [2025],
+    [2025,2026],
+    [2025,2026,2027,2029]
+  ];
+  const ys = DEMO_SETS[(Number(it.no)||0) % DEMO_SETS.length];
+  const av = String(it.assess==null?'':it.assess).trim();
+  const bv = String(it.fullYearBudget==null?'':it.fullYearBudget).trim();
+  const f = {
+    assessFlag: (av==='仅考核指标' || av==='两者都是') ? ys.slice() : [],
+    qualityFlag: (av==='仅高质量指标' || av==='两者都是') ? ys.slice() : [],
+    fullYearBudget: bv==='是' ? ys.slice() : []
+  };
+  it.__yearFlags = f;   /* 兼容派生结果缓存（真实分年度数据挂 it.yearFlags 时优先使用，不写缓存） */
+  return f;
+}
+/* 年度集合 → 展示串（仅前端展示时合并格式化，底层仍按单年度独立存储）：
+   连续 ≥3 个完整年度用波浪号缩写（2025~2027）；中间空缺（截断）则分段、段间中文逗号（2025~2027，2029）；
+   仅 1 个年度直接写年份（2025）；仅 2 个年度逗号隔开（2025，2026） */
+function stdMergeYears(years){
+  const ys = Array.from(new Set((years||[]).map(Number))).sort((a,b)=>a-b);
+  if(!ys.length) return '';
+  const segs = [];
+  let s = ys[0], p = ys[0];
+  const push = ()=>{ segs.push(p-s>=2 ? (s+'~'+p) : (p-s===1 ? (s+'，'+p) : String(s))); };
+  for(let i=1;i<ys.length;i++){
+    if(ys[i] === p+1){ p = ys[i]; }
+    else{ push(); s = ys[i]; p = ys[i]; }
+  }
+  push();
+  return segs.join('，');
+}
 /* 时间维度：查询枚举（2026-11-02 需求改版为本日发生数/本月发生数/本季累计数…）→ 数据源原始枚举匹配集合。
    数据源沿用旧词（本月数/本季数/本年度），展示层再统一转成新词，保证历史数据仍能按新枚举检索命中 */
 const STD_TIME_DIM_MAP = {
@@ -1773,15 +1829,6 @@ const STD_TIME_DIM_DISP = {
 function stdTimeDimDisp(v){
   const s = String(v==null?'':v).trim();
   return STD_TIME_DIM_DISP[s] || s;
-}
-/* 列表/详情显示值映射：仅考核指标→考核；仅高质量指标→高质量；两者都是→考核、高质量；
-   两者都不是/空 → null（渲染为占位 --） */
-function stdAssessDisp(v){
-  const s = String(v==null?'':v).trim();
-  if(s==='仅考核指标') return '考核';
-  if(s==='仅高质量指标') return '高质量';
-  if(s==='两者都是') return '考核、高质量';
-  return null;
 }
 /* 业务单元供数部门显示值（2026-11-02 需求）：值以「华润资产」开头时剔除前缀，只保留部门名
    （华润资产财务部 → 财务部）；仅影响列表/详情展示，检索与筛选仍按原始值 */
@@ -1879,14 +1926,23 @@ function stdFiltered(){
       const tv = String(it.timeDim==null?'':it.timeDim).trim();
       if(!a.timeDim.some(k=>(STD_TIME_DIM_MAP[k]||[k]).indexOf(tv)>=0)) return false;
     }
-    if(a.assess.length){
-      const av = String(it.assess==null?'':it.assess).trim();
-      if(!a.assess.some(k=>(STD_ASSESS_MAP[k]||[k]).indexOf(av)>=0)) return false;
+    /* 高级条件：是否考核指标 / 是否高质量指标 / 是否有全年预算（2026-11-12 需求，枚举为年度多选；
+       底层按单独年度独立存储标记 —— 选定年度与该字段年度标记集合有交集即命中） */
+    if(a.assessFlag && a.assessFlag.length){
+      const ys = stdItemYearFlags(it).assessFlag;
+      if(!a.assessFlag.some(y=>ys.indexOf(Number(y))>=0)) return false;
+    }
+    if(a.qualityFlag && a.qualityFlag.length){
+      const ys = stdItemYearFlags(it).qualityFlag;
+      if(!a.qualityFlag.some(y=>ys.indexOf(Number(y))>=0)) return false;
     }
     /* 高级条件：业务单元供数部门（精确匹配，选项按数据源汇总） */
     if(a.supplyDept && a.supplyDept.length && a.supplyDept.indexOf(String(it.supplyDept==null?'':it.supplyDept).trim()) < 0) return false;
-    /* 高级条件：是否有全年预算（是/否 精确匹配） */
-    if(a.fullYearBudget && a.fullYearBudget.length && a.fullYearBudget.indexOf(String(it.fullYearBudget==null?'':it.fullYearBudget).trim()) < 0) return false;
+    /* 高级条件：是否有全年预算（2026-11-12 需求：枚举改为年度多选 2027/2026/2025，按年度标记集合交集命中） */
+    if(a.fullYearBudget && a.fullYearBudget.length){
+      const ys = stdItemYearFlags(it).fullYearBudget;
+      if(!a.fullYearBudget.some(y=>ys.indexOf(Number(y))>=0)) return false;
+    }
     if(a.caliber.length && a.caliber.indexOf(String(it.caliber==null?'':it.caliber).trim()) < 0) return false;
     /* 高级条件：指标名称/编号/分组编号 精准匹配（与名称、标准编号、分组编号任一全等即命中；忽略首尾空白与大小写） */
     if(an){
@@ -1953,11 +2009,14 @@ function renderStdResult(rows){
 
   const table = document.getElementById('stdTable');
   if(!pageRows.length){
-    table.innerHTML = '<tbody><tr><td colspan="22"><div class="query-empty">🔍 未查询到匹配的指标标准，请调整关键字或筛选条件</div></td></tr></tbody>';
+    table.innerHTML = '<tbody><tr><td colspan="23"><div class="query-empty">🔍 未查询到匹配的指标标准，请调整关键字或筛选条件</div></td></tr></tbody>';
   }else{
     const kw = String((stdApplied ? stdApplied.kw : stdState.kw)).trim();
     // 列宽定义（前四列冻结：序号 44 / 指标标准编号 140 / 业务单元 110 / 指标名称 180；右侧冻结：操作 84）
-    const colW = [44,140,110,180,110,120,120,240,84,96,118,70,150,168,108,130,100,130,150,84,160,84];
+    // 2026-11-12 需求：移除「指标属性标签」列（原列宽 108）；新增「是否有全年预算」「是否考核指标」「是否高质量指标」列，
+    // 三字段均按年度标记合并格式化展示（连续≥3年缩写 2025~2027 / 空缺分段中文逗号 / 单年直写 / 两年逗号隔开）；
+    // 三列列宽统一 150px（最宽值 2025~2027，2029 不换行），且单元格 t-nowrap 不折行
+    const colW = [44,140,110,180,110,120,120,240,84,96,118,70,150,168,150,150,150,100,130,150,84,160,84];
     let html = '<colgroup>' + colW.map(w=>'<col style="width:'+w+'px">').join('') + '</colgroup>';
     html += '<thead><tr>'
       + '<th class="stick stick-1">序号</th>'
@@ -1973,8 +2032,9 @@ function renderStdResult(rows){
       + '<th>指标口径</th>'
       + '<th>指标单位</th>'
       + '<th>业务单元供数部门</th>'
-      + '<th>指标属性标签</th>'
       + '<th>是否有全年预算</th>'
+      + '<th>是否考核指标</th>'
+      + '<th>是否高质量指标</th>'
       + '<th>指标责任人</th>'
       + '<th>指标需求人</th>'
       + '<th>指标管理部门</th>'
@@ -2006,15 +2066,17 @@ function renderStdResult(rows){
         + (stdIsEmpty(it.caliber) ? '<td><span class="tag-none">—</span></td>' : '<td>' + escHtml(it.caliber) + '</td>')
         + (stdIsEmpty(it.unit) ? '<td><span class="tag-none">—</span></td>' : '<td>' + escHtml(it.unit) + '</td>')
         + txt(stdSupplyDeptDisp(it.supplyDept))
-        + (()=>{ /* 指标属性标签：考核蓝标 / 高质量绿标；两者都是=双标签同行展示；两者都不是=— */
-            const a = stdAssessDisp(it.assess);
-            if(!a) return '<td class="t-nowrap"><span class="tag-none">—</span></td>';
-            return '<td class="t-nowrap">' + a.split('、').map(t=>'<span class="assess-tag' + (t==='高质量' ? ' hq' : '') + '">' + escHtml(t) + '</span>').join('') + '</td>';
+        + (()=>{ /* 是否有全年预算：按年度标记合并格式化（2025~2027 / 2025~2027，2029 / 2025 / 2025，2026；无标记=—） */
+            const d = stdMergeYears(stdItemYearFlags(it).fullYearBudget);
+            return '<td class="t-nowrap">' + (d ? escHtml(d) : '<span class="tag-none">—</span>') + '</td>';
           })()
-        + (()=>{ /* 是否有全年预算：是=绿标 / 否=灰标（2026-10-13 新增列） */
-            const v = String(it.fullYearBudget==null?'':it.fullYearBudget).trim();
-            if(v!=='是' && v!=='否') return '<td><span class="tag-none">—</span></td>';
-            return '<td><span class="budget-tag' + (v==='是' ? ' yes' : '') + '">' + escHtml(v) + '</span></td>';
+        + (()=>{ /* 是否考核指标：按年度标记合并格式化，同上 */
+            const d = stdMergeYears(stdItemYearFlags(it).assessFlag);
+            return '<td class="t-nowrap">' + (d ? escHtml(d) : '<span class="tag-none">—</span>') + '</td>';
+          })()
+        + (()=>{ /* 是否高质量指标：按年度标记合并格式化，同上 */
+            const d = stdMergeYears(stdItemYearFlags(it).qualityFlag);
+            return '<td class="t-nowrap">' + (d ? escHtml(d) : '<span class="tag-none">—</span>') + '</td>';
           })()
         + txt(it.bizContact)
         + txt(it.owner)
@@ -2082,25 +2144,25 @@ function openStdDetail(no){
     const thHtml = '<th>' + escHtml(f.label)
       + (STD_FIELD_TIPS[f.key] ? '<span class="th-help" data-tip="' + escHtml(STD_FIELD_TIPS[f.key]) + '" tabindex="0">?</span>' : '')
       + '</th>';
-    /* 指标属性标签：显示值映射（考核/高质量/考核、高质量；两者都不是→--）；
-       2026-10-10 详情内样式对齐列表：考核蓝标 / 高质量绿标，双标签并存（胶囊圆角） */
-    if(f.key==='assess'){
-      const d = stdAssessDisp(it[f.key]);
-      const tags = d ? d.split('、').map(t=>'<span class="assess-tag' + (t==='高质量' ? ' hq' : '') + '">' + escHtml(t) + '</span>').join('') : '';
-      return '<tr>' + thHtml
-        + '<td' + (tags?'':' class="empty"') + '>' + (tags || '<span class="dim-dash">--</span>') + '</td></tr>';
-    }
     /* 安全级别：详情值同样带等级色块胶囊（L1 青 / L2 绿 / L3 橙 / L4 红；2026-10-10） */
     if(f.key==='securityLevel'){
       const v = it[f.key];
       if(stdIsEmpty(v)) return '<tr>' + thHtml + '<td class="empty">—</td></tr>';
       return '<tr>' + thHtml + '<td>' + stdSecHtml(v) + '</td></tr>';
     }
-    /* 是否有全年预算：详情同样用胶囊标签展示（是=绿 / 否=灰；2026-10-13，样式对齐列表） */
+    /* 「是否有全年预算」及其下展示字段「是否考核指标」「是否高质量指标」（2026-11-12 需求）：
+       底层按单独年度独立存储标记，展示时合并格式化 ——
+       连续 ≥3 年缩写（2025~2027）/ 中间空缺分段（2025~2027，2029）/ 1 个年度直写（2025）/ 2 个年度逗号隔开（2025，2026） */
     if(f.key==='fullYearBudget'){
-      const v = String(it[f.key]==null?'':it[f.key]).trim();
-      if(v!=='是' && v!=='否') return '<tr>' + thHtml + '<td class="empty">—</td></tr>';
-      return '<tr>' + thHtml + '<td><span class="budget-tag' + (v==='是' ? ' yes' : '') + '">' + escHtml(v) + '</span></td></tr>';
+      const fl = stdItemYearFlags(it);
+      const flagRow = (label, years) => {
+        const disp = stdMergeYears(years);
+        return '<tr>' + (label==='是否有全年预算' ? thHtml : '<th>' + escHtml(label) + '</th>')
+          + (disp ? '<td>' + escHtml(disp) + '</td>' : '<td class="empty">—</td>') + '</tr>';
+      };
+      return flagRow('是否有全年预算', fl.fullYearBudget)
+        + flagRow('是否考核指标', fl.assessFlag)
+        + flagRow('是否高质量指标', fl.qualityFlag);
     }
     /* 业务单元供数部门：显示值剔除「华润资产」前缀（2026-11-02 需求，与列表一致） */
     if(f.key==='supplyDept'){
@@ -2127,7 +2189,7 @@ function openStdDetail(no){
   tabGroups.forEach((g,i)=>{
     body += '<div class="std-tab-pane' + (i===0?' active':'') + '" data-pane="' + g.key + '">'
       + '<table class="std-detail-table"><tbody>'
-      + rowsHtml(m.fields.filter(f=>f.group===g.key && f.key!=='no'))
+      + rowsHtml(m.fields.filter(f=>f.group===g.key && f.key!=='no' && f.key!=='assess'))  /* assess：2026-11-12 需求移除「指标属性标签」展示字段 */
       + '</tbody></table></div>';
   });
   const drawer = document.getElementById('stdDrawer');
@@ -2245,7 +2307,7 @@ function stdUpdateAdvBadge(){
   if(stdState.advDef.trim()) n++;
   if(stdState.bizUnit) n++;
   if(stdLeafChecked.size) n++;
-  ['caliber','freq','timeDim','assess','supplyDept','fullYearBudget'].forEach(k=>{ if(stdState[k].length) n++; });
+  ['caliber','freq','timeDim','assessFlag','qualityFlag','supplyDept','fullYearBudget'].forEach(k=>{ if(stdState[k].length) n++; });
   badge.textContent = n;
   badge.style.display = n ? '' : 'none';
   btn.classList.toggle('has-active', n > 0);
